@@ -8,7 +8,7 @@ const nextConfig = {
       alias: {
         ...config.resolve.alias,
         // maps fs to a virtual one allowing to register file content dynamically
-        fs: '/Users/akeles/Programming/projects/cvdl/cvdl-editor/fe2/src/virtual-fs.js',
+        fs: __dirname + '/src/virtual-fs.js',
         // iconv-lite is used to load cid less fonts (not spec compliant)
         'iconv-lite': false
       },
