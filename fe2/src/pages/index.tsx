@@ -14,10 +14,12 @@ import { ItemContent, Resume } from 'cvdl-ts/dist/Resume';
 import { LayoutSchema } from 'cvdl-ts/dist/LayoutSchema';
 import { ResumeLayout } from 'cvdl-ts/dist/ResumeLayout';
 import { DataSchema } from 'cvdl-ts/dist/DataSchema';
-// @ts-ignore
 // import * as pdfjsLib from 'pdfjs-dist/webpack';
- // pdfjsLib.GlobalWorkerOptions.workerSrc = '../node_modules/pdfjs-dist/build/pdf.worker.js';
- pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.1.266/pdf.worker.js`;
+// @ts-ignore
+import * as pdfjsLib from 'pdfjs-dist';
+// @ts-ignore
+import workerSrc from 'pdfjs-dist/build/pdf.worker.entry';
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 function App() {
   console.log = function () { }
