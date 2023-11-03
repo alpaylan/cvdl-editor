@@ -5,15 +5,15 @@ import { useEffect, useReducer, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-import { FontDict } from 'cvdl-ts/src/AnyLayout';
-import { render as pdfRender } from 'cvdl-ts/src/PdfLayout';
-import { RemoteStorage } from 'cvdl-ts/src/RemoteStorage';
-import { LocalStorage } from 'cvdl-ts/src/LocalStorage';
-import { Storage } from 'cvdl-ts/src/Storage';
-import { ItemContent, Resume } from 'cvdl-ts/src/Resume';
-import { LayoutSchema } from 'cvdl-ts/src/LayoutSchema';
-import { ResumeLayout } from 'cvdl-ts/src/ResumeLayout';
-import { DataSchema } from 'cvdl-ts/src/DataSchema';
+import { FontDict } from 'cvdl-ts/dist/AnyLayout';
+import { render as pdfRender } from 'cvdl-ts/dist/PdfLayout';
+import { RemoteStorage } from 'cvdl-ts/dist/RemoteStorage';
+import { LocalStorage } from 'cvdl-ts/dist/LocalStorage';
+import { Storage } from 'cvdl-ts/dist/Storage';
+import { ItemContent, Resume } from 'cvdl-ts/dist/Resume';
+import { LayoutSchema } from 'cvdl-ts/dist/LayoutSchema';
+import { ResumeLayout } from 'cvdl-ts/dist/ResumeLayout';
+import { DataSchema } from 'cvdl-ts/dist/DataSchema';
 // @ts-ignore
 import * as pdfjsLib from 'pdfjs-dist/webpack';
 
