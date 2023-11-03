@@ -15,7 +15,7 @@ import { LayoutSchema } from 'cvdl-ts/dist/LayoutSchema';
 import { ResumeLayout } from 'cvdl-ts/dist/ResumeLayout';
 import { DataSchema } from 'cvdl-ts/dist/DataSchema';
 // @ts-ignore
-import * as pdfjsLib from 'pdfjs-dist/webpack';
+// import * as pdfjsLib from 'pdfjs-dist/webpack';
 
 function App() {
   console.log = function () { }
