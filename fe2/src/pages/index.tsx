@@ -37,19 +37,28 @@ function App() {
   const [dataSchemas, setDataSchemas] = useState<DataSchema[] | null>(null)
   const [fontDict, setFontDict] = useState<FontDict>(new FontDict());
   const [debug, setDebug] = useState<boolean>(false);
+  const [storageInitiated, setStorageInitiated] = useState<boolean>(false);
 
   useEffect(() => {
     require('../registerStaticFiles.js');
-    storage.initiate_storage();
+    storage.initiate_storage().then(() => {
+      setStorageInitiated(true);
+    });
   });
 
   useEffect(() => {
+    if (!storageInitiated) {
+      return;
+    }
     storage.load_resume(resume).then((data) => {
       setResumeData(data);
     })
-  }, [resume, storage]);
+  }, [resume, storage, storageInitiated]);
 
   useEffect(() => {
+    if (!storageInitiated) {
+      return;
+    }
     const data_schema_loader = async () => {
       if (!resumeData) {
         return [];
@@ -72,11 +81,15 @@ function App() {
     layout_schema_loader().then((schemas) => setLayoutSchemas(schemas))
     resume_layout_loader().then((layout) => setResumeLayout(layout))
 
-  }, [resumeData, storage]);
+  }, [resumeData, storage, storageInitiated]);
 
 
 
   useEffect(() => {
+    if (!storageInitiated) {
+      return;
+    }
+    
     const start_time = performance.now();
     pdfRender({
       resume_name: resume,
