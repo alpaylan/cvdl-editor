@@ -21,6 +21,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import workerSrc from 'pdfjs-dist/build/pdf.worker.entry';
 import Section from '@/components/Section';
 import { render as domRender } from '@/logic/DomLayout';
+import Layout from '@/components/layout';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -64,7 +65,6 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
 
 function App() {
   console.log = () => { };
-  console.error = () => { };
   console.warn = () => { };
   console.info = () => { };
 
@@ -170,9 +170,19 @@ function App() {
     storage.save_resume("resume2", resumeData);
   }
 
+  useEffect(() => {
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "s" && e.ctrlKey || e.key === "s" && e.metaKey) {
+        e.preventDefault();
+        saveResume();
+      }
+    });
+  });
+
   return (
     <DocumentContext.Provider value={resumeData}>
       <DocumentDispatchContext.Provider value={dispatch}>
+        <Layout>
         <div style={{ display: "flex", flexDirection: "row" }}>
           <div style={{ display: "flex", width: "50%" }}>
             <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
@@ -190,6 +200,7 @@ function App() {
           </div>
           <div id="pdf-container" style={{ display: "flex", flexDirection: "column" }}></div>
         </div>
+        </Layout>
       </DocumentDispatchContext.Provider>
     </DocumentContext.Provider>
   );

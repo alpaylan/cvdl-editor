@@ -71,8 +71,12 @@ export const render = async (
     console.info(`Rendering time: ${end_time - start_time}ms`);
     console.log("Constructing printpdf font dictionary...");
 
-    console.log("Rendering the document...");
+    
+    // Add the fonts to the document(@TODO: DO NOT HARDCODE THE FONTS)
+    document.fonts.add(new FontFace("Exo-Bold", "url(https://d2bnplhbawocbk.cloudfront.net/data/fonts/Exo-Bold.ttf)"));
+    document.fonts.add(new FontFace("Exo-Medium", "url(https://d2bnplhbawocbk.cloudfront.net/data/fonts/Exo-Medium.ttf)"));
 
+    console.log("Rendering the document...");
     // Render the boxes
     for (const [index, boxes] of pages.entries()) {
         let pageContainer = container.appendChild(document.createElement("div"));
