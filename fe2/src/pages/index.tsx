@@ -19,14 +19,12 @@ import { DataSchema } from 'cvdl-ts/dist/DataSchema';
 import * as pdfjsLib from 'pdfjs-dist';
 // @ts-ignore
 import workerSrc from 'pdfjs-dist/build/pdf.worker.entry';
+import SectionItemField from '@/components/SectionItemField';
+import SectionItem from '@/components/SectionItem';
+import Section from '@/components/Section';
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 function App() {
-  console.log = function () { }
-  console.warn = function () { }
-  console.error = function () { }
-  console.debug = function () { }
-
   const [storage, setStorage] = useState<Storage>(new LocalStorage());
   const [numPages, setNumPages] = useState<number>();
   const [pdf, setPdf] = useState<string | null>(null);
@@ -89,7 +87,7 @@ function App() {
     if (!storageInitiated) {
       return;
     }
-    
+
     const start_time = performance.now();
     pdfRender({
       resume_name: resume,
@@ -120,60 +118,15 @@ function App() {
 
   return (
     <div style={{ display: "flex", flexDirection: "row" }}>
-      <div style={{ display: "flex", width: "700px" }}>
-        <div style={{ display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", width: "50%" }}>
+        <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
           <button onClick={saveResume} >Save</button>
           <button onClick={() => setDebug(!debug)} >Invert Debug</button>
-          <b >Sections</b>
+          <b>Sections</b>
           {(resumeData && layoutSchemas) &&
             resumeData.sections.map((section, index) => {
               return (
-                <div key={index} >
-                  <button key={section.section_name} > {section.section_name} </button>
-                  <div style={{ flexDirection: "row" }}>
-                    <b > Layout: </b>
-                    <input list="layout-schemas"
-                      defaultValue={section.layout_schema}
-                      onChange={(e) => {
-                        if (layoutSchemas.find((schema_name) => schema_name === e.target.value)) {
-                          section.layout_schema = e.target.value;
-                          setResumeData(new Resume(resumeData.layout, resumeData.sections));
-                        }
-                      }} />
-                    <datalist id="layout-schemas">
-                      {layoutSchemas.map((schema) => {
-                        return <option value={schema} key={schema}> {schema} </option>
-                      })}
-                    </datalist>
-                  </div>
-                  <span >
-                    ----------------
-                  </span>
-                  {
-                    section.items.map((item, index) => {
-                      return (
-                        <div key={index}>
-                          {
-                            dataSchemas?.find((schema) => schema.schema_name === section.data_schema)?.item_schema.map((field) => {
-                              return (
-                                <div style={{ flexDirection: "row" }} key={field.name} >
-                                  <b > {field.name} </b>
-                                  <input type="text" onChange={(e) => {
-                                    item.set(field.name, ItemContent.fromJson(e.target.value));
-                                    setResumeData(new Resume(resumeData.layout, resumeData.sections));
-                                    // @ts-ignore
-                                  }} defaultValue={ItemContent.toString(item.get(field.name) ?? ItemContent.None())} />
-                                </div>
-                              )
-                            })}
-                          <span >
-                            ----------------
-                          </span>
-                        </div>
-                      )
-                    })
-                  }
-                </div>
+                <Section key={index} section={section} dataSchemas={dataSchemas!} />
               )
             })
           }
@@ -182,7 +135,6 @@ function App() {
       <div style={{ display: "flex", width: "%50", flexDirection: "column" }}>
         <div style={{ display: "flex", maxHeight: "792px", overflow: "scroll" }}>
           <Document file={pdf} onLoadSuccess={onDocumentLoadSuccess}  >
-            {/* <Page pageNumber={pageNumber} /> */}
             {Array.apply(null, Array(numPages))
               .map((x, i) => i + 1)
               .map(page => (<div key={page} style={{ borderWidth: "1px", borderColor: "#000000" }}> <Page pageNumber={page} /> </div>))}

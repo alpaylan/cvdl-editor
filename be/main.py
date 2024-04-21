@@ -11,6 +11,7 @@ import pydantic
 from bson import ObjectId
 pydantic.json.ENCODERS_BY_TYPE[ObjectId]=str
 
+mongo_conn_str = "mongodb://localhost:27017/"
 app = FastAPI()
 
 origins = ["*"]
