@@ -127,9 +127,9 @@ export const render = async (
                     font-weight: ${element.font.weight};
                     ${debug ? "outline: 1px solid black;" : ""}
                 `;
-                if (debug) {
-                    // doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).stroke();
-                }
+                (doc.lastChild! as HTMLDivElement).addEventListener("click", () => {
+                    console.error(element.item);
+                });
             }
         });
     }

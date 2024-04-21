@@ -72,7 +72,7 @@ const SectionItem = ({ section, item, itemContent }: { section: string, item: nu
                                             )
                                         })
                                     }
-                                    <div style={{ display: "flex", flexDirection: "row"}}>
+                                    <div style={{ display: "flex", flexDirection: "row", marginTop: "5px"}}>
                                     {
                                         fields.filter((ic) => !ic.isActive).map((field, index) => {
                                             return (

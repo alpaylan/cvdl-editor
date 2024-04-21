@@ -21,10 +21,21 @@ const SectionItemField = ({ section, item, field }: { section: string, item: num
         <div key={field.name} >
             <b> {field.name} </b>
             <input type="text"
+                style={{ width: "100%", padding: "5px", borderRadius: "5px", border: "1px solid black" 
+                    
+                }}
                 defaultValue={field.value}
                 onChange={(e) => {
                     const value = e.target.value;
                     debouncedDispatch({ type: "field-update", section: section, item: item, field: field.name, value: { tag: "String", value: value } });
+                }}
+                onFocus={(e) => {
+                    e.target.style.outline = "none";
+                    e.target.style.boxShadow = "0 0 10px #F0EBE3";
+                }}
+                onBlur={(e) => {
+                    e.target.style.outline = "none";
+                    e.target.style.boxShadow = "none";
                 }}
             />
         </div>
