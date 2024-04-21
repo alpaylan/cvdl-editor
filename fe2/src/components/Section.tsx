@@ -62,7 +62,7 @@ const Section = ({ section, dataSchemas }: { section: ResumeSection, dataSchemas
             {
                 sectionContent.map((itemContent, index) => {
                     return (
-                        <SectionItem key={index} itemContent={itemContent} />
+                        <SectionItem key={index} item={index} section={section.section_name} itemContent={itemContent} />
                     )
                 })
             }

@@ -1,7 +1,7 @@
 
 
 
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { createContext, useEffect, useReducer, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -19,17 +19,62 @@ import { DataSchema } from 'cvdl-ts/dist/DataSchema';
 import * as pdfjsLib from 'pdfjs-dist';
 // @ts-ignore
 import workerSrc from 'pdfjs-dist/build/pdf.worker.entry';
-import SectionItemField from '@/components/SectionItemField';
-import SectionItem from '@/components/SectionItem';
 import Section from '@/components/Section';
+import { render as domRender } from '@/logic/DomLayout';
+
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
+
+// Create a global storage for ResumeData
+export const DocumentContext = createContext<Resume | null>(null);
+export const DocumentDispatchContext = createContext<React.Dispatch<any> | null>(null);
+
+// Create a dispatch function that changes the contents of a field in the ResumeData
+
+type DocumentAction = {
+  type: "field-update"
+  section: string,
+  item: number,
+  field: string,
+  value: ItemContent
+} | {
+  type: "load"
+  value: Resume
+}
+
+export const DocumentReducer = (state: Resume, action: DocumentAction) => {
+  console.log(action);
+  const newState = new Resume(state.layout, state.sections);
+
+  if (action.type === "load") {
+    return action.value;
+  }
+
+  if (action.type === "field-update") {
+    newState.sections = state.sections.map((section) => {
+      if (section.section_name === action.section) {
+        section.items[action.item].set(action.field, action.value);
+      }
+      return section;
+    });
+  }
+  console.error(newState);
+  return newState;
+}
+
 function App() {
+  console.log = () => { };
+  console.error = () => { };
+  console.warn = () => { };
+  console.info = () => { };
+
+  const [resumeData, dispatch] = useReducer(DocumentReducer, new Resume("SingleColumnSchema", []));
+  // console.log(state);
   const [storage, setStorage] = useState<Storage>(new LocalStorage());
   const [numPages, setNumPages] = useState<number>();
   const [pdf, setPdf] = useState<string | null>(null);
   const [resume, setResume] = useState<string>("resume2");
-  const [resumeData, setResumeData] = useState<Resume | null>(null)
+  // const [resumeData, setResumeData] = useState<Resume | null>(state)
   const [layoutSchemas, setLayoutSchemas] = useState<string[] | null>(null)
   const [resumeLayout, setResumeLayout] = useState<ResumeLayout | null>(null)
   const [dataSchemas, setDataSchemas] = useState<DataSchema[] | null>(null)
@@ -49,7 +94,9 @@ function App() {
       return;
     }
     storage.load_resume(resume).then((data) => {
-      setResumeData(data);
+      // setResumeData(data);
+      console.error("Running load");
+      dispatch({ type: "load", value: data });
     })
   }, [resume, storage, storageInitiated]);
 
@@ -103,6 +150,13 @@ function App() {
       console.info("Rendering pdf took " + (end_time - start_time) + "ms");
     });
 
+    domRender({
+      resume_name: resume,
+      resume: resumeData!,
+      storage,
+      fontDict,
+      debug
+    });
   }, [resume, fontDict, debug, storage, resumeData]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
@@ -117,31 +171,27 @@ function App() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "row" }}>
-      <div style={{ display: "flex", width: "50%" }}>
-        <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-          <button onClick={saveResume} >Save</button>
-          <button onClick={() => setDebug(!debug)} >Invert Debug</button>
-          <b>Sections</b>
-          {(resumeData && layoutSchemas) &&
-            resumeData.sections.map((section, index) => {
-              return (
-                <Section key={index} section={section} dataSchemas={dataSchemas!} />
-              )
-            })
-          }
+    <DocumentContext.Provider value={resumeData}>
+      <DocumentDispatchContext.Provider value={dispatch}>
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          <div style={{ display: "flex", width: "50%" }}>
+            <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+              <button onClick={saveResume} >Save</button>
+              <button onClick={() => setDebug(!debug)} >Invert Debug</button>
+              <b>Sections</b>
+              {(resumeData && layoutSchemas) &&
+                resumeData.sections.map((section, index) => {
+                  return (
+                    <Section key={index} section={section} dataSchemas={dataSchemas!} />
+                  )
+                })
+              }
+            </div>
+          </div>
+          <div id="pdf-container" style={{ display: "flex", flexDirection: "column" }}></div>
         </div>
-      </div>
-      <div style={{ display: "flex", width: "%50", flexDirection: "column" }}>
-        <div style={{ display: "flex", maxHeight: "792px", overflow: "scroll" }}>
-          <Document file={pdf} onLoadSuccess={onDocumentLoadSuccess}  >
-            {Array.apply(null, Array(numPages))
-              .map((x, i) => i + 1)
-              .map(page => (<div key={page} style={{ borderWidth: "1px", borderColor: "#000000" }}> <Page pageNumber={page} /> </div>))}
-          </Document>
-        </div>
-      </div>
-    </div>
+      </DocumentDispatchContext.Provider>
+    </DocumentContext.Provider>
   );
 }
 

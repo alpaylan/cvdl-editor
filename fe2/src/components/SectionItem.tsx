@@ -35,7 +35,7 @@ const ItemHeader = ({ itemContent, showAll }: { itemContent: ItemProps, showAll:
 }
 
 
-const SectionItem = ({ itemContent }: { itemContent: ItemProps }) => {
+const SectionItem = ({ section, item, itemContent }: { section: string, item: number, itemContent: ItemProps }) => {
     const [showAll, setShowAll] = useState<boolean>(false);
     const [fields, setFields] = useState<ItemProps>(itemContent);
 
@@ -63,9 +63,12 @@ const SectionItem = ({ itemContent }: { itemContent: ItemProps }) => {
                             <div style={{ display: "flex", flexDirection: "row" }}>
                                 <div style={{ display: "flex", flexDirection: "column" }}>
                                     {
-                                        fields.filter((ic) => ic.isActive).map((field, index) => {
+                                        fields.map((field, index) => {
+                                            if (!field.isActive) {
+                                                return <></>
+                                            };
                                             return (
-                                                <SectionItemField field={field} key={index} />
+                                                <SectionItemField section={section} item={item} field={field} key={index} />
                                             )
                                         })
                                     }
