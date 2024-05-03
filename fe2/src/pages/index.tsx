@@ -22,6 +22,7 @@ import workerSrc from 'pdfjs-dist/build/pdf.worker.entry';
 import Section from '@/components/Section';
 import { render as domRender } from '@/logic/DomLayout';
 import Layout from '@/components/layout';
+import LayoutEditor from '@/components/LayoutEditor';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -150,13 +151,13 @@ function App() {
       console.info("Rendering pdf took " + (end_time - start_time) + "ms");
     });
 
-    domRender({
-      resume_name: resume,
-      resume: resumeData!,
-      storage,
-      fontDict,
-      debug
-    });
+    // domRender({
+    //   resume_name: resume,
+    //   resume: resumeData!,
+    //   storage,
+    //   fontDict,
+    //   debug
+    // });
   }, [resume, fontDict, debug, storage, resumeData]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
@@ -198,6 +199,7 @@ function App() {
               }
             </div>
           </div>
+          <LayoutEditor />
           <div id="pdf-container" style={{ display: "flex", flexDirection: "column" }}></div>
         </div>
         </Layout>
