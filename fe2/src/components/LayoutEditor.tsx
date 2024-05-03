@@ -1,10 +1,10 @@
 "use client";
-import { DocumentContext } from "@/pages";
+import { DocumentContext, DocumentDispatchContext } from "@/pages";
 import { SectionLayout } from "cvdl-ts/dist/Layout";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { Width } from "cvdl-ts/dist/Width";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useReducer, useState } from "react";
 
 
 type LensStep = {
@@ -27,32 +27,69 @@ const followLens = (lens: Lens, obj: any) => {
 
 const ControlPanel = (props: { layout: SectionLayout, setLayout: any, lens: Lens }) => {
     const current = followLens(props.lens, props.layout);
-    console.error(current);
+    const randomKey = Math.random().toString(36).substring(7);
     return (
         <div>
             <h2>Control Panel</h2>
-            {/* <pre>{JSON.stringify(current, null, 2)}</pre> */}
-            <div style={{ display: "flex", flexDirection: "column"}}>
+            <div key={randomKey} style={{ display: "flex", flexDirection: "column" }}>
                 <label>Font Name</label>
-                <input type="text" defaultValue={current.inner.font.name} onChange={(e) => { current.inner.font.name = e.target.value }} />
+                <input type="text" defaultValue={current.inner.font.name} onChange={(e) => {
+                    current.inner.font.name = e.target.value;
+                    
+                    props.setLayout(props.layout)
+                }} />
                 <label>Font Size</label>
-                <input type="number" defaultValue={current.inner.font.size} onChange={(e) => { current.inner.font.size = parseInt(e.target.value); props.setLayout({...props.layout}) }} />
+                <input type="number" defaultValue={current.inner.font.size} onChange={(e) => {
+                    current.inner.font.size = parseInt(e.target.value);
+                    props.setLayout(props.layout)
+                }} />
                 <label>Font Weight</label>
-                <input type="text" defaultValue={current.inner.font.weight} onChange={(e) => { current.inner.font.weight = e.target.value }} />
+                <input type="text" defaultValue={current.inner.font.weight} onChange={(e) => {
+                    current.inner.font.weight = e.target.value;
+                    console.error("Writing font weight to " + e.target.value);
+                    if (["100", "Thin", "Hairline", "200", "Extra Light", "Ultra Light", "300", "Light", "400", "Normal", "500", "Medium", "600", "Semi Bold", "Demi Bold", "700", "Bold", "800", "Extra Bold", "Ultra Bold", "900", "Black", "Heavy"].includes(e.target.value)) {
+                        console.error("Setting font weight to " + e.target.value);
+                        props.setLayout(props.layout)
+                    }
+                    
+                }} />
                 <label>Font Style</label>
-                <input type="text" defaultValue={current.inner.font.style} onChange={(e) => { current.inner.font.style = e.target.value }} />
+                <input type="text" defaultValue={current.inner.font.style} onChange={(e) => {
+                    current.inner.font.style = e.target.value;
+                    if (["normal", "italic", "oblique"].includes(e.target.value.toLowerCase())) {
+                        props.setLayout(props.layout)
+                    }
+                }} />
                 <label>Margin Left</label>
-                <input type="number" defaultValue={current.inner.margin.left} onChange={(e) => { current.inner.margin.left = parseInt(e.target.value) }} />
+                <input type="number" defaultValue={current.inner.margin.left} onChange={(e) => {
+                    current.inner.margin.left = parseInt(e.target.value);
+                    props.setLayout(props.layout)
+                }} />
                 <label>Margin Right</label>
-                <input type="number" defaultValue={current.inner.margin.right} onChange={(e) => { current.inner.margin.right = parseInt(e.target.value) }} />
+                <input type="number" defaultValue={current.inner.margin.right} onChange={(e) => {
+                    current.inner.margin.right = parseInt(e.target.value);
+                    props.setLayout(props.layout)
+                }} />
                 <label>Margin Top</label>
-                <input type="number" defaultValue={current.inner.margin.top} onChange={(e) => { current.inner.margin.top = parseInt(e.target.value) }} />
+                <input type="number" defaultValue={current.inner.margin.top} onChange={(e) => {
+                    current.inner.margin.top = parseInt(e.target.value);
+                    props.setLayout(props.layout)
+                }} />
                 <label>Margin Bottom</label>
-                <input type="number" defaultValue={current.inner.margin.bottom} onChange={(e) => { current.inner.margin.bottom = parseInt(e.target.value) }} />
+                <input type="number" defaultValue={current.inner.margin.bottom} onChange={(e) => {
+                    current.inner.margin.bottom = parseInt(e.target.value);
+                    props.setLayout(props.layout)
+                }} />
                 <label>Alignment</label>
-                <input type="text" defaultValue={current.inner.alignment} onChange={(e) => { current.inner.alignment = e.target.value }} />
+                <input type="text" defaultValue={current.inner.alignment} onChange={(e) => {
+                    current.inner.alignment = e.target.value;
+                    props.setLayout(props.layout)
+                }} />
                 <label>Width</label>
-                <input type="number" defaultValue={current.inner.width.value} onChange={(e) => { current.inner.width = Width.percent(parseInt(e.target.value)) }} />
+                <input type="number" defaultValue={current.inner.width.value} onChange={(e) => {
+                    current.inner.width = Width.percent(parseInt(e.target.value));
+                    props.setLayout(props.layout)
+                }} />
 
             </div>
 
@@ -72,7 +109,7 @@ const RowEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
         }}>
             {
                 props.layout.inner.elements.map((item: any, index: number) => {
-                    return <LayoutEditWindow key={index} layout={item} lens={[...props.lens, {'index': index}]} setLens={props.setLens} />
+                    return <LayoutEditWindow key={index} layout={item} lens={[...props.lens, { 'index': index }]} setLens={props.setLens} />
                 })
             }
         </div>
@@ -90,7 +127,7 @@ const StackEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
         }}>
             {
                 props.layout.inner.elements.map((item: any, index: number) => {
-                    return <LayoutEditWindow key={index} layout={item} lens={[...props.lens, {'index': index}]} setLens={props.setLens} />
+                    return <LayoutEditWindow key={index} layout={item} lens={[...props.lens, { 'index': index }]} setLens={props.setLens} />
                 })
             }
         </div>
@@ -103,7 +140,7 @@ const ItemEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
             {/* <pre>{JSON.stringify(props.layout, null, 2)}</pre> */}
             <div
                 style={{
-                    fontFamily: props.layout.inner.font.name,
+                    fontFamily: props.layout.inner.font.name + ", sans-serif",
                     fontSize: props.layout.inner.font.size,
                     fontWeight: props.layout.inner.font.weight,
                     fontStyle: props.layout.inner.font.style,
@@ -153,6 +190,7 @@ const LayoutEditWindow = (props: { layout: any, lens: any, setLens: any }) => {
 
 const LayoutEditor = () => {
     const resumeContext = useContext(DocumentContext);
+    const dispatch = useContext(DocumentDispatchContext);
 
     const layoutSchemaNames = resumeContext?.layout_schemas();
     const [layoutSchemaIndex, setLayoutSchemaIndex] = useState<number | null>(null);
@@ -173,8 +211,12 @@ const LayoutEditor = () => {
         if (!layoutSchema) {
             return;
         }
+        const storage = new LocalStorage();
         layoutSchema.item_layout_schema = sectionLayout;
-        setLayoutSchema({...layoutSchema});
+        setLayoutSchema({ ...layoutSchema });
+        console.error("Dispatching layout update");
+        storage.save_layout_schema(layoutSchema);
+        dispatch!({ type: "layout-update", layout: layoutSchema });
     }
     return (
         <div>
@@ -189,7 +231,7 @@ const LayoutEditor = () => {
                     <>
                         <div style={{ display: "flex", flexDirection: "row" }}>
                             <div style={{ display: "flex", flexDirection: "column" }}>
-                                <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[{'attribute': 'header_layout_schema'}]} layout={layoutSchema.header_layout_schema} />
+                                <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[{ 'attribute': 'header_layout_schema' }]} layout={layoutSchema.header_layout_schema} />
                                 <div style={{ height: "5px" }}></div>
                                 <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[]} layout={layoutSchema.item_layout_schema} />
                             </div>

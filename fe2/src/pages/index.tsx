@@ -42,6 +42,9 @@ type DocumentAction = {
 } | {
   type: "load"
   value: Resume
+} | {
+  type: "layout-update"
+  value: LayoutSchema
 }
 
 export const DocumentReducer = (state: Resume, action: DocumentAction) => {
@@ -60,7 +63,12 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
       return section;
     });
   }
-  console.error(newState);
+
+  if (action.type === "layout-update") {
+    console.error("Loading layout");
+    return newState;
+  }
+
   return newState;
 }
 
@@ -151,13 +159,13 @@ function App() {
       console.info("Rendering pdf took " + (end_time - start_time) + "ms");
     });
 
-    // domRender({
-    //   resume_name: resume,
-    //   resume: resumeData!,
-    //   storage,
-    //   fontDict,
-    //   debug
-    // });
+    domRender({
+      resume_name: resume,
+      resume: resumeData!,
+      storage,
+      fontDict,
+      debug
+    });
   }, [resume, fontDict, debug, storage, resumeData]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
