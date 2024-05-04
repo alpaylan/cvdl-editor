@@ -25,7 +25,7 @@ const computeSectionContent = (section: ResumeSection, dataSchemas: DataSchema[]
         const itemContent: ItemProps = [];
         dataSchema.item_schema.forEach((field) => {
             let name = field.name;
-            let value = ItemContent.toString(item.get(field.name) ?? ItemContent.None());
+            let value = ItemContent.toString(item.fields.get(field.name) ?? ItemContent.None());
             let isActive = value !== "";
             itemContent.push({
                 name,
@@ -90,7 +90,7 @@ const Section = ({ section, dataSchemas }: { section: ResumeSection, dataSchemas
                     {
                         sectionContent.map((itemContent, index) => {
                             return (
-                                <SectionItem key={`${index}-${JSON.stringify(itemContent)}`} item={index} section={section.section_name} itemContent={itemContent} />
+                                <SectionItem key={section.items[index].id} item={index} section={section.section_name} itemContent={itemContent} />
                             )
                         })
                     }

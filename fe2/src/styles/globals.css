@@ -26,3 +26,18 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+button {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+    &.bordered {
+      border: 1px solid rgb(var(--foreground-rgb));
+      border-radius: 5px;
+      padding: 5px 10px;
+    }
+}

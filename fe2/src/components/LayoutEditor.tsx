@@ -383,6 +383,12 @@ const markUsedElements = (layout: LayoutSchema, dataSchema: DataSchema) => {
     return elements;
 }
 
+const unusedElements = (layout: LayoutSchema, dataSchema: DataSchema) => {
+    const elements = markUsedElements(layout, dataSchema);
+    return Object.entries(elements).filter((entry) => !entry[1]).map((entry) => entry[0]);
+}
+
+
 const LayoutEditor = () => {
     const resumeContext = useContext(DocumentContext);
     const dispatch = useContext(DocumentDispatchContext);
@@ -391,24 +397,29 @@ const LayoutEditor = () => {
     const [layoutSchemaIndex, setLayoutSchemaIndex] = useState<number | null>(null);
     const [layoutSchema, setLayoutSchema] = useState<LayoutSchema | null>(null);
     const [dataSchema, setDataSchema] = useState<DataSchema | null>(null);
-    const [layoutSchemaControlPanel, setLayoutSchemaControlPanel] = useState<any>(null);
+    const [layoutSchemaControlPanel, setLayoutSchemaControlPanel] = useState<Lens | null>(null);
     const [creatingNewLayoutSchema, setCreatingNewLayoutSchema] = useState<boolean>(false);
     const [layoutVisitor, setLayoutVisitor] = useState<LayoutVisitor | null>(null);
+    const [selectedLayout, setSelectedLayout] = useState<SectionLayout | null>(null);
     useEffect(() => {
         const storage = new LocalStorage();
         if (layoutSchemaNames && layoutSchemaNames.length > 0 && layoutSchemaIndex !== null) {
-
-            storage.load_layout_schema(layoutSchemaNames[layoutSchemaIndex]).then((schema) => {
-                setLayoutSchema(schema);
-                storage.load_data_schema(schema.data_schema_name).then((dataSchema) => {
-                    setDataSchema(dataSchema);
-                });
-
-            });
-
+            const schema = storage.load_layout_schema(layoutSchemaNames[layoutSchemaIndex]);
+            setLayoutSchema(schema);
+            const dataSchema = storage.load_data_schema(schema.data_schema_name);
+            setDataSchema(dataSchema);
         }
     }, [layoutSchemaIndex]);
 
+    useEffect(() => {
+        if (layoutSchemaControlPanel === null || layoutSchema === null) {
+            return;
+        }
+        console.error("Layout schema control panel is not null");
+        console.error(layoutSchemaControlPanel);
+        const current = followLens(layoutSchemaControlPanel!, layoutSchema!.item_layout_schema);
+        setSelectedLayout(current);
+    }, [layoutSchema, layoutSchemaControlPanel]);
     const setLayout = (sectionLayout: SectionLayout) => {
         if (!layoutSchema) {
             return;
@@ -456,9 +467,8 @@ const LayoutEditor = () => {
                                 resumeContext?.data_schemas().map((name, index) => {
                                     return <button key={index} onClick={() => {
                                         const storage = new LocalStorage();
-                                        storage.load_data_schema(name).then((schema) => {
-                                            setDataSchema(schema);
-                                        });
+                                        const schema = storage.load_data_schema(name);
+                                        setDataSchema(schema);
                                     }}>{name}</button>
                                 })
                             }
@@ -468,11 +478,26 @@ const LayoutEditor = () => {
                         <p>No layout schema selected</p>
             }
             {
-                dataSchema !== null ?
+                (dataSchema !== null && selectedLayout?.inner.tag !== "Elem")  ?
                     <div>
                         {
-                            Object.entries(markUsedElements(layoutSchema!, dataSchema)).map((used, index) => {
-                                return <button key={index} style={{ color: used[1] ? "black" : "red", border: "1px solid black", margin: "2px", padding: "2px", borderRadius: "5px" }}>{used[0]} +</button>
+                            unusedElements(layoutSchema!, dataSchema).map((used, index) => {
+                                return <button
+                                    key={index}
+                                    style={{
+                                        color: used[1] ? "black" : "red",
+                                        border: "1px solid black",
+                                        margin: "2px",
+                                        padding: "2px",
+                                        borderRadius: "5px"
+                                    }}
+                                    onClick={() => {
+                                        const elem = Elem.default_();
+                                        elem.is_ref = true;
+                                        elem.item = used;
+                                        (selectedLayout!.inner as Row | Stack).elements.push(new SectionLayout(elem));
+                                        setLayout(selectedLayout!);
+                                    }}>{used} +</button>
                             })
                         }
                     </div> :

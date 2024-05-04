@@ -6,6 +6,8 @@ import { Resume } from "cvdl-ts/dist/Resume";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
+import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
+import { RemoteStorage } from "cvdl-ts/dist/RemoteStorage";
 
 export type RenderResult = {
     blob: Blob,
@@ -19,7 +21,7 @@ export type RenderProps = {
     data_schemas?: DataSchema[],
     layout_schemas?: LayoutSchema[],
     resume_layout?: ResumeLayout,
-    storage: Storage,
+    storage: LocalStorage | RemoteStorage,
     fontDict?: FontDict,
     debug: boolean,
 }

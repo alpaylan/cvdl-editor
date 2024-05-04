@@ -1,7 +1,7 @@
 
 
 
-import { createContext, useEffect, useReducer, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useReducer, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -51,10 +51,6 @@ type DocumentAction = {
   section: string,
   item: number
 } | {
-  type: "add-item",
-  section: string,
-  item: [ItemName, ItemContent],
-} | {
   type: "add-empty-item",
   section: string
 } | {
@@ -66,11 +62,19 @@ type DocumentAction = {
   section: string,
   item: number,
   direction: "up" | "down"
+} | {
+  type: "add-section",
+  section: ResumeSection
+} | {
+  type: "add-empty-section",
+  section_name: string,
+  data_schema: string,
+  layout_schema: string
 }
 
 export const DocumentReducer = (state: Resume, action: DocumentAction) => {
   console.log(action);
-  const newState = new Resume(state.layout, state.sections);
+  const newState = Resume.fromJson(state.toJson());
 
   if (action.type === "load") {
     return action.value;
@@ -79,7 +83,7 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
   if (action.type === "field-update") {
     newState.sections = state.sections.map((section) => {
       if (section.section_name === action.section) {
-        section.items[action.item].set(action.field, action.value);
+        section.items[action.item].fields.set(action.field, action.value);
       }
       return section;
     });
@@ -100,16 +104,6 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
         console.error(section.items);
         console.error(section.items[action.item])
         newSection.items = section.items.filter((item, index) => index !== action.item);
-      }
-      return newSection;
-    });
-  }
-
-  if (action.type === "add-item") {
-    newState.sections = state.sections.map((section) => {
-      const newSection = ResumeSection.fromJson(section.toJson());
-      if (section.section_name === action.section) {
-        newSection.items.push(new Map([action.item]));
       }
       return newSection;
     });
@@ -155,21 +149,67 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
         const storage = new LocalStorage();
-        storage.load_data_schema(section.data_schema).then((data_schema) => {
-          const item = new Map<ItemName, ItemContent>();
-          data_schema.item_schema.forEach((field) => {
-            item.set(field.name, ItemContent.None());
-          });
-          newSection.items.push(item);
+        const data_schema = storage.load_data_schema(section.data_schema);
+        const item = new Map<ItemName, ItemContent>();
+        data_schema.item_schema.forEach((field) => {
+          item.set(field.name, ItemContent.None());
         });
+        const id = Math.random().toString(36).substring(7);
+        newSection.items.push({ id, fields: item });
       }
       return newSection;
     });
   }
 
+  if (action.type === "add-section") {
+    newState.sections.push(action.section);
+  }
+
+  if (action.type === "add-empty-section") {
+    const newSection = new ResumeSection();
+    const storage = new LocalStorage();
+    const layout_schema = storage.load_layout_schema(action.layout_schema);
+    console.error(layout_schema);
+    newSection.data_schema = layout_schema.data_schema_name;
+    newSection.section_name = action.section_name;
+    newSection.layout_schema = action.layout_schema;
+    console.error(newSection);
+    newState.sections.push(newSection);
+  }
+
   return newState;
 }
 
+const AddNewSection = () => {
+  const dispatch = useContext(DocumentDispatchContext);
+  const [addingSection, setAddingSection] = useState<boolean>(false);
+  const [sectionName, setSectionName] = useState<string>("");
+  const [layoutSchema, setLayoutSchema] = useState<string>("");
+  return (
+    <>
+      {!addingSection && <button className='bordered' onClick={() => {
+        setAddingSection(!addingSection);
+      }}> Add new section </button>
+      }
+      {addingSection && <div>
+        <input type="text" value={sectionName} placeholder="Section name" onChange={(e) => setSectionName(e.target.value)} />
+        <input type="text" value={layoutSchema} placeholder="Layout schema" onChange={(e) => setLayoutSchema(e.target.value)} />
+        <button className='bordered' onClick={() => {
+          setAddingSection(!addingSection);
+        }}> Cancel </button>
+        <button className='bordered' onClick={() => {
+          setAddingSection(!addingSection);
+          dispatch!({
+            type: "add-empty-section",
+            section_name: sectionName,
+            layout_schema: layoutSchema
+          });
+        }}> Add </button>
+      </div>
+      }
+    </>
+  )
+}
 function App() {
   console.log = () => { };
   console.warn = () => { };
@@ -178,10 +218,10 @@ function App() {
   const [resumeData, dispatch] = useReducer(DocumentReducer, new Resume("SingleColumnSchema", []));
   console.error("Rerendering app")
   // console.log(state);
-  const [storage, setStorage] = useState<Storage>(new LocalStorage());
+  const [storage, setStorage] = useState<LocalStorage>(new LocalStorage());
   const [numPages, setNumPages] = useState<number>();
   const [pdf, setPdf] = useState<string | null>(null);
-  const [resume, setResume] = useState<string>("resume2");
+  const [resume, setResume] = useState<string>("resume5");
   // const [resumeData, setResumeData] = useState<Resume | null>(state)
   const [layoutSchemas, setLayoutSchemas] = useState<string[] | null>(null)
   const [resumeLayout, setResumeLayout] = useState<ResumeLayout | null>(null)
@@ -189,7 +229,7 @@ function App() {
   const [fontDict, setFontDict] = useState<FontDict>(new FontDict());
   const [debug, setDebug] = useState<boolean>(false);
   const [storageInitiated, setStorageInitiated] = useState<boolean>(false);
-
+  const [addingSection, setAddingSection] = useState<boolean>(false);
   useEffect(() => {
     require('../registerStaticFiles.js');
     storage.initiate_storage().then(() => {
@@ -201,14 +241,16 @@ function App() {
     if (!storageInitiated) {
       return;
     }
-    storage.load_resume(resume).then((data) => {
-      // setResumeData(data);
-      console.error("Running load");
-      dispatch({ type: "load", value: data });
-    })
+    const data = storage.load_resume(resume);
+    console.error("Running load");
+    dispatch({ type: "load", value: data });
+
   }, [resume, storage, storageInitiated]);
 
   useEffect(() => {
+    console.error("Running effect");
+    console.error(resumeData);
+    console.error(resumeData.data_schemas());
     if (!storageInitiated) {
       return;
     }
@@ -216,6 +258,7 @@ function App() {
       if (!resumeData) {
         return [];
       }
+      console.error(resumeData.data_schemas());
       return await Promise.all(resumeData.data_schemas().map((schema) => storage.load_data_schema(schema)));
     }
 
@@ -243,21 +286,6 @@ function App() {
       return;
     }
 
-    const start_time = performance.now();
-    pdfRender({
-      resume_name: resume,
-      resume: resumeData!,
-      storage,
-      fontDict,
-      debug
-    }).then(({ blob, fontDict, pages }) => {
-      setPdf(window.URL.createObjectURL(blob));
-      setFontDict(fontDict);
-
-      const end_time = performance.now();
-      console.info("Rendering pdf took " + (end_time - start_time) + "ms");
-    });
-
     domRender({
       resume_name: resume,
       resume: resumeData!,
@@ -275,12 +303,30 @@ function App() {
     if (!resumeData) {
       return;
     }
-    storage.save_resume("resume2", resumeData);
+    storage.save_resume("resume5", resumeData);
+  }
+
+  const downloadResume = () => {
+    pdfRender({
+      resume_name: resume,
+      resume: resumeData!,
+      storage,
+      fontDict,
+      debug
+    }).then(({ blob, fontDict, pages }) => {
+      const pdf = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = pdf;
+      link.download = "resume.pdf";
+      link.click();
+    });
+
   }
 
   useEffect(() => {
     document.addEventListener("keydown", (e) => {
       if (e.key === "s" && e.ctrlKey || e.key === "s" && e.metaKey) {
+        console.error("Saving resume");
         e.preventDefault();
         saveResume();
       }
@@ -294,9 +340,11 @@ function App() {
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div style={{ display: "flex", width: "50%" }}>
               <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-                <button onClick={saveResume} >Save</button>
+                <button onClick={downloadResume} >Download</button>
                 <button onClick={() => setDebug(!debug)} >Invert Debug</button>
                 <b>Sections</b>
+
+                <AddNewSection />
                 {(resumeData && layoutSchemas) &&
                   resumeData.sections.map((section, index) => {
                     return (
