@@ -2,8 +2,9 @@
 import { DataSchema } from 'cvdl-ts/dist/DataSchema';
 import { ItemContent, ResumeSection } from 'cvdl-ts/dist/Resume';
 import SectionItemField from './SectionItemField';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import SectionItem from './SectionItem';
+import { DocumentDispatchContext } from '@/pages';
 
 export type FieldProps = {
     name: string;
@@ -40,7 +41,9 @@ const computeSectionContent = (section: ResumeSection, dataSchemas: DataSchema[]
 
 
 const Section = ({ section, dataSchemas }: { section: ResumeSection, dataSchemas: DataSchema[] }) => {
+    const [showAll, setShowAll] = useState<boolean>(false);
     const sectionContent = computeSectionContent(section, dataSchemas);
+    const dispatch = useContext(DocumentDispatchContext);
     return (
         <div
             style={{
@@ -52,22 +55,48 @@ const Section = ({ section, dataSchemas }: { section: ResumeSection, dataSchemas
                 padding: "10px",
             }}
         >
-            <h1 key={section.section_name} style={{ fontSize: "1.3em", fontWeight: "bold"}} > {section.section_name} </h1>
-            <div style={{ flexDirection: "row" }}>
-                <b > Layout: </b>
-                <input list="layout-schemas"
-                    defaultValue={section.layout_schema}
-                />
+            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", padding: "10px" }}>
+                <h1 key={section.section_name} style={{ fontSize: "1.3em", fontWeight: "bold" }} > {section.section_name} </h1>
+
+                <div style={{ border: "1px solid black", padding: "5px", borderRadius: "5px" }}>
+                    {sectionContent.length}
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "row" }}>
+                    <div style={{ border: "1px solid black", padding: "5px", marginRight: "5px", borderRadius: "5px" }}>
+                        <button onClick={() => {
+                            dispatch!({ type: "add-empty-item", section: section.section_name })
+                        }}> + </button>
+                    </div>
+                    <div style={{ border: "1px solid black", padding: "5px", marginRight: "5px", borderRadius: "5px" }}>
+                        {
+                            showAll ?
+                                <button onClick={() => setShowAll(false)}> x </button> :
+                                <button onClick={() => setShowAll(true)}> v </button>
+                        }
+                    </div>
+                </div>
             </div>
             {
-                sectionContent.map((itemContent, index) => {
-                    return (
-                        <SectionItem key={index} item={index} section={section.section_name} itemContent={itemContent} />
-                    )
-                })
+
+                showAll &&
+                <>
+                    <div style={{ flexDirection: "row" }}>
+                        <b > Layout: </b>
+                        <input list="layout-schemas"
+                            defaultValue={section.layout_schema}
+                        />
+                    </div>
+                    {
+                        sectionContent.map((itemContent, index) => {
+                            return (
+                                <SectionItem key={`${index}-${JSON.stringify(itemContent)}`} item={index} section={section.section_name} itemContent={itemContent} />
+                            )
+                        })
+                    }
+                </>
             }
-        </div>
-    )
+        </div>)
 }
 
 export default Section;

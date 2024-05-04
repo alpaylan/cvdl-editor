@@ -87,8 +87,6 @@ const layoutFollowLens = (lens: LayoutVisitor, layout: SectionLayout) => {
 
 const ControlPanel = (props: { layout: SectionLayout, setLayout: any, lens: Lens }) => {
     const current = followLens(props.lens, props.layout);
-    console.error("Current layout");
-    console.error(current);
     switch (current.inner.tag) {
         case "Row":
             return <ContainerControlPanel current={current} layout={props.layout} setLayout={props.setLayout} lens={props.lens} />;

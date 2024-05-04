@@ -10,7 +10,7 @@ import { render as pdfRender } from 'cvdl-ts/dist/PdfLayout';
 import { RemoteStorage } from 'cvdl-ts/dist/RemoteStorage';
 import { LocalStorage } from 'cvdl-ts/dist/LocalStorage';
 import { Storage } from 'cvdl-ts/dist/Storage';
-import { ItemContent, Resume } from 'cvdl-ts/dist/Resume';
+import { ItemContent, ItemName, Resume, ResumeSection } from 'cvdl-ts/dist/Resume';
 import { LayoutSchema } from 'cvdl-ts/dist/LayoutSchema';
 import { ResumeLayout } from 'cvdl-ts/dist/ResumeLayout';
 import { DataSchema } from 'cvdl-ts/dist/DataSchema';
@@ -23,6 +23,7 @@ import Section from '@/components/Section';
 import { render as domRender } from '@/logic/DomLayout';
 import Layout from '@/components/layout';
 import LayoutEditor from '@/components/LayoutEditor';
+import { data } from 'autoprefixer';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -45,6 +46,26 @@ type DocumentAction = {
 } | {
   type: "layout-update"
   value: LayoutSchema
+} | {
+  type: "delete-item"
+  section: string,
+  item: number
+} | {
+  type: "add-item",
+  section: string,
+  item: [ItemName, ItemContent],
+} | {
+  type: "add-empty-item",
+  section: string
+} | {
+  type: "copy-item",
+  section: string,
+  item: number
+} | {
+  type: "move-item",
+  section: string,
+  item: number,
+  direction: "up" | "down"
 }
 
 export const DocumentReducer = (state: Resume, action: DocumentAction) => {
@@ -69,6 +90,83 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
     return newState;
   }
 
+  if (action.type === "delete-item") {
+    console.error("Deleting item");
+    console.error(action);
+    newState.sections = state.sections.map((section) => {
+      const newSection = ResumeSection.fromJson(section.toJson());
+      if (section.section_name === action.section) {
+        console.error("Deleting item");
+        console.error(section.items);
+        console.error(section.items[action.item])
+        newSection.items = section.items.filter((item, index) => index !== action.item);
+      }
+      return newSection;
+    });
+  }
+
+  if (action.type === "add-item") {
+    newState.sections = state.sections.map((section) => {
+      const newSection = ResumeSection.fromJson(section.toJson());
+      if (section.section_name === action.section) {
+        newSection.items.push(new Map([action.item]));
+      }
+      return newSection;
+    });
+  }
+
+  if (action.type === "copy-item") {
+    newState.sections = state.sections.map((section) => {
+      const newSection = ResumeSection.fromJson(section.toJson());
+      if (section.section_name === action.section) {
+        newSection.items.push(section.items[action.item]);
+      }
+      return newSection;
+    });
+  }
+
+  if (action.type === "move-item") {
+    newState.sections = state.sections.map((section) => {
+      const newSection = ResumeSection.fromJson(section.toJson());
+      if (section.section_name === action.section) {
+        const item = newSection.items[action.item];
+        if (action.direction === "up") {
+          if (action.item === 0) {
+            return newSection;
+          }
+          const temp = newSection.items[action.item - 1];
+          newSection.items[action.item - 1] = item;
+          newSection.items[action.item] = temp;
+        } else {
+          if (action.item === newSection.items.length - 1) {
+            return newSection;
+          }
+          const temp = newSection.items[action.item + 1];
+          newSection.items[action.item + 1] = item;
+          newSection.items[action.item] = temp;
+        }
+      }
+      return newSection;
+    });
+  }
+
+  if (action.type === "add-empty-item") {
+    newState.sections = state.sections.map((section) => {
+      const newSection = ResumeSection.fromJson(section.toJson());
+      if (section.section_name === action.section) {
+        const storage = new LocalStorage();
+        storage.load_data_schema(section.data_schema).then((data_schema) => {
+          const item = new Map<ItemName, ItemContent>();
+          data_schema.item_schema.forEach((field) => {
+            item.set(field.name, ItemContent.None());
+          });
+          newSection.items.push(item);
+        });
+      }
+      return newSection;
+    });
+  }
+
   return newState;
 }
 
@@ -78,6 +176,7 @@ function App() {
   console.info = () => { };
 
   const [resumeData, dispatch] = useReducer(DocumentReducer, new Resume("SingleColumnSchema", []));
+  console.error("Rerendering app")
   // console.log(state);
   const [storage, setStorage] = useState<Storage>(new LocalStorage());
   const [numPages, setNumPages] = useState<number>();
@@ -192,24 +291,24 @@ function App() {
     <DocumentContext.Provider value={resumeData}>
       <DocumentDispatchContext.Provider value={dispatch}>
         <Layout>
-        <div style={{ display: "flex", flexDirection: "row" }}>
-          <div style={{ display: "flex", width: "50%" }}>
-            <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-              <button onClick={saveResume} >Save</button>
-              <button onClick={() => setDebug(!debug)} >Invert Debug</button>
-              <b>Sections</b>
-              {(resumeData && layoutSchemas) &&
-                resumeData.sections.map((section, index) => {
-                  return (
-                    <Section key={index} section={section} dataSchemas={dataSchemas!} />
-                  )
-                })
-              }
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            <div style={{ display: "flex", width: "50%" }}>
+              <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                <button onClick={saveResume} >Save</button>
+                <button onClick={() => setDebug(!debug)} >Invert Debug</button>
+                <b>Sections</b>
+                {(resumeData && layoutSchemas) &&
+                  resumeData.sections.map((section, index) => {
+                    return (
+                      <Section key={index} section={section} dataSchemas={dataSchemas!} />
+                    )
+                  })
+                }
+              </div>
             </div>
+            <LayoutEditor />
+            <div id="pdf-container" style={{ display: "flex", flexDirection: "column" }}></div>
           </div>
-          <LayoutEditor />
-          <div id="pdf-container" style={{ display: "flex", flexDirection: "column" }}></div>
-        </div>
         </Layout>
       </DocumentDispatchContext.Provider>
     </DocumentContext.Provider>
