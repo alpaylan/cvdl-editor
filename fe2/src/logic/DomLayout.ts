@@ -21,7 +21,7 @@ export type RenderProps = {
     data_schemas?: DataSchema[],
     layout_schemas?: LayoutSchema[],
     resume_layout?: ResumeLayout,
-    storage: LocalStorage | RemoteStorage,
+    storage: LocalStorage,
     fontDict?: FontDict,
     debug: boolean,
 }

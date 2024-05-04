@@ -1,7 +1,9 @@
 "use client";
 import { DocumentContext, DocumentDispatchContext } from "@/pages";
 import { assert } from "console";
+import { Alignment } from "cvdl-ts/dist/Alignment";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
+import { FontStyle, FontWeight } from "cvdl-ts/dist/Font";
 import { Elem, Row, SectionLayout, Stack } from "cvdl-ts/dist/Layout";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
@@ -127,13 +129,13 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                 }} />
                 <label>Alignment</label>
                 <input type="text" defaultValue={container.alignment} onChange={(e) => {
-                    container.alignment = e.target.value;
+                    container.alignment = (e.target.value as Alignment);
                     if (["left", "right", "center", "justify"].includes(e.target.value.toLowerCase())) {
                         props.setLayout(props.layout)
                     }
                 }} />
                 <label>Width</label>
-                <input type="number" defaultValue={container.width.value} onChange={(e) => {
+                <input type="number" defaultValue={container.width.tag === "Fill" ? 100 : container.width.value} onChange={(e) => {
                     let value = parseInt(e.target.value);
                     if (value > 0 && value <= 100) {
                         container.width = Width.percent(parseInt(e.target.value));
@@ -195,7 +197,7 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                 }} />
                 <label>Font Weight</label>
                 <input type="text" defaultValue={elem.font.weight} onChange={(e) => {
-                    elem.font.weight = e.target.value;
+                    elem.font.weight = e.target.value as FontWeight;
                     console.error("Writing font weight to " + e.target.value);
                     if (["100", "Thin", "Hairline", "200", "Extra Light", "Ultra Light", "300", "Light", "400", "Normal", "500", "Medium", "600", "Semi Bold", "Demi Bold", "700", "Bold", "800", "Extra Bold", "Ultra Bold", "900", "Black", "Heavy"].includes(e.target.value)) {
                         console.error("Setting font weight to " + e.target.value);
@@ -205,7 +207,7 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                 }} />
                 <label>Font Style</label>
                 <input type="text" defaultValue={elem.font.style} onChange={(e) => {
-                    elem.font.style = e.target.value;
+                    elem.font.style = e.target.value as FontStyle;
                     if (["normal", "italic", "oblique"].includes(e.target.value.toLowerCase())) {
                         props.setLayout(props.layout)
                     }
@@ -232,13 +234,13 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                 }} />
                 <label>Alignment</label>
                 <input type="text" defaultValue={elem.alignment} onChange={(e) => {
-                    elem.alignment = e.target.value;
+                    elem.alignment = e.target.value as Alignment;
                     if (["left", "right", "center", "justify"].includes(e.target.value.toLowerCase())) {
                         props.setLayout(props.layout)
                     }
                 }} />
                 <label>Width</label>
-                <input type="number" defaultValue={elem.width.value} onChange={(e) => {
+                <input type="number" defaultValue={elem.width.tag === "Fill" ? 100 : elem.width.value} onChange={(e) => {
                     let value = parseInt(e.target.value);
                     if (value > 0 && value <= 100) {
                         elem.width = Width.percent(parseInt(e.target.value));
