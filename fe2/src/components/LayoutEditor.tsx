@@ -178,13 +178,13 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                                                 container.elements[index] = container.elements[index - 1];
                                                 container.elements[index - 1] = temp;
                                                 props.setLayout(props.layout);
-                                            }}>{container.tag === "Stack" ? "↑" : "<"}</button>}
+                                            }}>{container.tag === "Stack" ? "↑" : "←"}</button>}
                                             {index < container.elements.length - 1 && <button className="bordered" onClick={() => {
                                                 const temp = container.elements[index];
                                                 container.elements[index] = container.elements[index + 1];
                                                 container.elements[index + 1] = temp;
                                                 props.setLayout(props.layout);
-                                            }}>{container.tag === "Stack" ? "↓" : ">"}</button>}
+                                            }}>{container.tag === "Stack" ? "↓" : "→"}</button>}
                                         </div>
                                     </div>
                                 )
