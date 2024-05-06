@@ -87,66 +87,47 @@ const layoutFollowLens = (lens: LayoutVisitor, layout: SectionLayout) => {
 }
 
 
-const ControlPanel = (props: { layout: SectionLayout, setLayout: any, lens: Lens }) => {
+const ControlPanel = (props: { layout: SectionLayout, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
     const current = followLens(props.lens, props.layout);
     switch (current.inner.tag) {
         case "Row":
-            return <ContainerControlPanel current={current} layout={props.layout} setLayout={props.setLayout} lens={props.lens} />;
+            return <ContainerControlPanel current={current} layout={props.layout} setLayout={props.setLayout} lens={props.lens} setLens={props.setLens} />;
         case "Stack":
-            return <ContainerControlPanel current={current} layout={props.layout} setLayout={props.setLayout} lens={props.lens} />;
+            return <ContainerControlPanel current={current} layout={props.layout} setLayout={props.setLayout} lens={props.lens} setLens={props.setLens} />;
         case "Elem":
-            return <ElemControlPanel current={current} layout={props.layout} setLayout={props.setLayout} />;
+            return <ElemControlPanel current={current} layout={props.layout} setLayout={props.setLayout} lens={props.lens} setLens={props.setLens} />;
         default:
             return <p>Unknown tag</p>;
     }
 }
 
-const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionLayout, setLayout: any, lens: Lens }) => {
+const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionLayout, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
+    const [newElement, setNewElement] = useState<string>("");
     const container = props.current.inner as Stack | Row;
-    const randomKey = Math.random().toString(36).substring(7);
+    // const randomKey = Math.random().toString(36).substring(7);
     return (
         <div style={{ display: "flex", flexDirection: "row" }}>
-            <div key={randomKey} style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
-                <div className="panel-item">
-                    <label>Margin Left</label>
-                    <input type="number" defaultValue={container.margin.left} onChange={(e) => {
-                        container.margin.left = parseInt(e.target.value);
-                        props.setLayout(props.layout)
-                    }} />
-                </div>
-                <div className="panel-item">
-                    <label>Margin Right</label>
-                    <input type="number" defaultValue={container.margin.right} onChange={(e) => {
-                        container.margin.right = parseInt(e.target.value);
-                        props.setLayout(props.layout)
-                    }} />
-                </div>
-                <div className="panel-item">
-                    <label>Margin Top</label>
-                    <input type="number" defaultValue={container.margin.top} onChange={(e) => {
-                        container.margin.top = parseInt(e.target.value);
-                        props.setLayout(props.layout)
-                    }} />
-                </div>
-                <div className="panel-item">
-                    <label>Margin Bottom</label>
-                    <input type="number" defaultValue={container.margin.bottom} onChange={(e) => {
-                        container.margin.bottom = parseInt(e.target.value);
-                        props.setLayout(props.layout)
-                    }} />
+            <div className="panel" style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
+                <div style={{ width: "100%", padding: "20px" }}>
+                    <b>{container.tag}({container.elements.map((layout) => 
+                        layout.inner.tag === "Elem" ? layout.inner.item : layout.inner.tag
+                    ).join(" | ")})</b>
                 </div>
                 <div className="panel-item">
                     <label>Alignment</label>
-                    <input type="text" defaultValue={container.alignment} onChange={(e) => {
+                    <select name="alignment" value={container.alignment} onChange={(e) => {
                         container.alignment = (e.target.value as Alignment);
-                        if (["left", "right", "center", "justify"].includes(e.target.value.toLowerCase())) {
-                            props.setLayout(props.layout)
-                        }
-                    }} />
+                        props.setLayout(props.layout)
+                    }}>
+                        <option value="Left">Left</option>
+                        <option value="Right">Right</option>
+                        <option value="Center">Center</option>
+                        <option value="Justify">Justify</option>
+                    </select>
                 </div>
                 <div className="panel-item">
                     <label>Width</label>
-                    <input type="number" defaultValue={container.width.tag === "Fill" ? 100 : container.width.value} onChange={(e) => {
+                    <input type="number" value={container.width.tag === "Fill" ? 100 : container.width.value} onChange={(e) => {
                         let value = parseInt(e.target.value);
                         if (value > 0 && value <= 100) {
                             container.width = Width.percent(parseInt(e.target.value));
@@ -154,8 +135,18 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                         }
                     }} />
                 </div>
+                <div className="panel-item">
+                    <button className="bordered" onClick={() => {
+                        const parent = followLens(props.lens.slice(0, -1), props.layout);
+                        const index = (parent.inner as Row | Stack).elements.indexOf(props.current);
+                        (parent.inner as Row | Stack).elements.splice(index, 1);
+                        props.setLens(props.lens.slice(0, -1));
+                        props.setLayout(props.layout);
+                    }}>Delete</button>
+                </div>
+
                 <div className="panel-item-elements">
-                    <label>Elements</label>
+                    {container.elements.length !== 0 && <label>Elements</label>}
                     <div style={{ display: "flex", flexDirection: "column" }}>
                         {
                             container.elements.map((element, index) => {
@@ -192,28 +183,45 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                         }
                     </div>
                 </div>
+                <div className="panel-item-elements">
+                    <label>Add New Text Element</label>
+                    <input type="text" onChange={(e) => {
+                        setNewElement(e.target.value);
+                    }} />
+                    <button className="bordered" onClick={() => {
+                        const elem = Elem.default_();
+                        elem.is_ref = false;
+                        elem.item = newElement;
+                        container.elements.push(new SectionLayout(elem));
+                        props.setLayout(props.layout);
+                    }}> Add</button>
+                </div>
             </div>
         </div>
     );
 
 }
 
-const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout, setLayout: any }) => {
+const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
     const elem = props.current.inner as Elem;
-    const randomKey = Math.random().toString(36).substring(7);
     return (
         <div style={{ display: "flex", flexDirection: "row" }}>
-            <div key={randomKey} className="panel">
+            <div className="panel">
+                <div style={{ width: "100%", padding: "20px" }}>
+                    <b>Elem({elem.item})</b>
+                </div>
                 <div className="panel-item">
                     <label>Font Name</label>
-                    <input type="text" defaultValue={elem.font.name} onChange={(e) => {
+                    <select name="font-name" value={elem.font.name} onChange={(e) => {
                         elem.font.name = e.target.value;
                         props.setLayout(props.layout)
-                    }} />
+                    }}>
+                        <option value="Exo">Exo</option>
+                    </select>
                 </div>
                 <div className="panel-item">
                     <label>Font Size</label>
-                    <input type="number" defaultValue={elem.font.size} onChange={(e) => {
+                    <input type="number" value={elem.font.size} onChange={(e) => {
                         let value = parseInt(e.target.value);
                         if (value > 8) {
                             elem.font.size = parseInt(e.target.value);
@@ -223,44 +231,70 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                 </div>
                 <div className="panel-item">
                     <label>Font Weight</label>
-                    <input type="text" defaultValue={elem.font.weight} onChange={(e) => {
-                        elem.font.weight = e.target.value as FontWeight;
-                        console.error("Writing font weight to " + e.target.value);
-                        if (["100", "Thin", "Hairline", "200", "Extra Light", "Ultra Light", "300", "Light", "400", "Normal", "500", "Medium", "600", "Semi Bold", "Demi Bold", "700", "Bold", "800", "Extra Bold", "Ultra Bold", "900", "Black", "Heavy"].includes(e.target.value)) {
-                            console.error("Setting font weight to " + e.target.value);
-                            props.setLayout(props.layout)
-                        }
-
-                    }} />
+                    <select name="font-weight" value={elem.font.weight} onChange={(e) => {
+                        elem.font.weight = (e.target.value as FontWeight);
+                        props.setLayout(props.layout)
+                    }}>
+                        <option value="Thin">Thin</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Bold">Bold</option>
+                    </select>
                 </div>
                 <div className="panel-item">
                     <label>Font Style</label>
-                    <input type="text" defaultValue={elem.font.style} onChange={(e) => {
-                        elem.font.style = e.target.value as FontStyle;
-                        if (["normal", "italic", "oblique"].includes(e.target.value.toLowerCase())) {
-                            props.setLayout(props.layout)
-                        }
-                    }} />
+                    <select name="font-style" value={elem.font.style} onChange={(e) => {
+                        elem.font.style = (e.target.value as FontStyle);
+                        props.setLayout(props.layout)
+                    }}>
+                        <option value="Italic">Italic</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Oblique">Oblique</option>
+                    </select>
                 </div>
                 <div className="panel-item">
                     <label>Alignment</label>
-                    <input type="text" defaultValue={elem.alignment} onChange={(e) => {
-                        elem.alignment = e.target.value as Alignment;
-                        if (["left", "right", "center", "justify"].includes(e.target.value.toLowerCase())) {
-                            props.setLayout(props.layout)
-                        }
-                    }} />
+                    <select name="alignment" value={elem.alignment} onChange={(e) => {
+                        elem.alignment = (e.target.value as Alignment);
+                        props.setLayout(props.layout)
+                    }}>
+                        <option value="Left">Left</option>
+                        <option value="Right">Right</option>
+                        <option value="Center">Center</option>
+                        <option value="Justify">Justify</option>
+                    </select>
                 </div>
                 <div className="panel-item">
                     <label>Width</label>
-                    <input type="number" defaultValue={elem.width.tag === "Fill" ? 100 : elem.width.value} onChange={(e) => {
-                        let value = parseInt(e.target.value);
-                        if (value > 0 && value <= 100) {
-                            elem.width = Width.percent(parseInt(e.target.value));
-                            console.error(props.layout)
-                            props.setLayout(props.layout)
-                        }
-                    }} />
+
+                    <select name="width" value={elem.width.tag} onChange={(e) => {
+                        elem.width.tag = (e.target.value as "Fill" | "Percent" | "Absolute");
+                        props.setLayout(props.layout)
+
+                    }}>
+                        <option value="Fill">Fill</option>
+                        <option value="Percent">Percent(%)</option>
+                        <option value="Absolute">Absolute(px)</option>
+                    </select>
+                    {
+                        elem.width.tag !== "Fill" &&
+                        <input type="number" value={elem.width.value} onChange={(e) => {
+                            let value = parseInt(e.target.value);
+                            if (value > 0) {
+                                // @ts-ignore
+                                elem.width.value = value;
+                                props.setLayout(props.layout)
+                            }
+                        }} />
+                    }
+                </div>
+                <div className="panel-item">
+                    <button className="bordered" onClick={() => {
+                        const parent = followLens(props.lens.slice(0, -1), props.layout);
+                        const index = (parent.inner as Row | Stack).elements.indexOf(props.current);
+                        (parent.inner as Row | Stack).elements.splice(index, 1);
+                        props.setLens(props.lens.slice(0, -1));
+                        props.setLayout(props.layout);
+                    }}>Delete</button>
                 </div>
 
             </div>
@@ -449,7 +483,7 @@ const LayoutEditor = () => {
                     return;
                 }
                 setLayoutSchema(LayoutSchema.empty("new schema", dataSchema!.schema_name))
-            }}>☑ Create New Layout Schema</button>
+            }}>⊕ Create New Layout Schema</button>
 
             <div style={{ display: "flex", flexDirection: "row" }}>
                 <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%" }}>
@@ -464,6 +498,7 @@ const LayoutEditor = () => {
                                 const schema = storage.load_layout_schema(name);
                                 setLayoutSchema(schema);
                                 setLayoutSchemaControlPanel(null);
+                                setDataSchema(storage.load_data_schema(schema.data_schema_name));
                             }}>{name}</button>
                         })
                     }
@@ -482,6 +517,7 @@ const LayoutEditor = () => {
                                 const schema = storage.load_layout_schema(name);
                                 setLayoutSchema(schema);
                                 setLayoutSchemaControlPanel(null);
+                                setDataSchema(storage.load_data_schema(schema.data_schema_name));
                             }}>{name}</button>
                         })
                     }
@@ -498,51 +534,49 @@ const LayoutEditor = () => {
                                 <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[]} layout={layoutSchema.item_layout_schema} />
                             </div>
                             {
-                                layoutSchemaControlPanel !== null && <ControlPanel layout={layoutSchema.item_layout_schema} setLayout={setLayout} lens={layoutSchemaControlPanel} />
+                                layoutSchemaControlPanel !== null && <ControlPanel layout={layoutSchema.item_layout_schema} setLayout={setLayout} lens={layoutSchemaControlPanel} setLens={setLayoutSchemaControlPanel} />
                             }
                         </div>
                     </> :
-                    creatingNewLayoutSchema ?
-                        <div>
-                            {
-                                resumeContext?.data_schemas().map((name, index) => {
-                                    return <button key={index} onClick={() => {
-                                        const storage = new LocalStorage();
-                                        const schema = storage.load_data_schema(name);
-                                        setDataSchema(schema);
-                                    }}>{name}</button>
-                                })
-                            }
-                            <button onClick={() => setCreatingNewLayoutSchema(false)}>Cancel</button>
-
-                        </div> :
-                        <p>No layout schema selected</p>
-            }
-            {
-                (dataSchema !== null && selectedLayout?.inner.tag !== "Elem") ?
+                    creatingNewLayoutSchema &&
                     <div>
                         {
-                            unusedElements(layoutSchema!, dataSchema).map((used, index) => {
-                                return <button
-                                    key={index}
-                                    style={{
-                                        color: used[1] ? "black" : "red",
-                                        border: "1px solid black",
-                                        margin: "2px",
-                                        padding: "2px",
-                                        borderRadius: "5px"
-                                    }}
-                                    onClick={() => {
-                                        const elem = Elem.default_();
-                                        elem.is_ref = true;
-                                        elem.item = used;
-                                        (selectedLayout!.inner as Row | Stack).elements.push(new SectionLayout(elem));
-                                        setLayout(selectedLayout!);
-                                    }}>{used} +</button>
+                            resumeContext?.data_schemas().map((name, index) => {
+                                return <button key={index} onClick={() => {
+                                    const storage = new LocalStorage();
+                                    const schema = storage.load_data_schema(name);
+                                    setDataSchema(schema);
+                                }}>{name}</button>
                             })
                         }
-                    </div> :
-                    <p>No data schema selected</p>
+                        <button onClick={() => setCreatingNewLayoutSchema(false)}>Cancel</button>
+
+                    </div>
+            }
+            {
+                (dataSchema !== null && selectedLayout && selectedLayout.inner.tag !== "Elem") &&
+                <div>
+                    {
+                        unusedElements(layoutSchema!, dataSchema).map((used, index) => {
+                            return <button
+                                key={index}
+                                style={{
+                                    color: used[1] ? "black" : "red",
+                                    border: "1px solid black",
+                                    margin: "2px",
+                                    padding: "2px",
+                                    borderRadius: "5px"
+                                }}
+                                onClick={() => {
+                                    const elem = Elem.default_();
+                                    elem.is_ref = true;
+                                    elem.item = used;
+                                    (selectedLayout!.inner as Row | Stack).elements.push(new SectionLayout(elem));
+                                    setLayout(selectedLayout!);
+                                }}>{used} +</button>
+                        })
+                    }
+                </div>
 
             }
         </div>

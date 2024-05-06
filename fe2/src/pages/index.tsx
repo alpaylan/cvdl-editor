@@ -188,7 +188,7 @@ const AddNewSection = () => {
     <>
       {!addingSection && <button className='bordered' onClick={() => {
         setAddingSection(!addingSection);
-      }}> Add new section </button>
+      }}>⊕ Add new section </button>
       }
       {addingSection && <div>
         <input type="text" value={sectionName} placeholder="Section name" onChange={(e) => setSectionName(e.target.value)} />
@@ -362,7 +362,7 @@ function App() {
             }
             <div style={{ display: "flex", flexDirection: "column", margin: "20px" }}>
               <div style={{ display: "flex", flexDirection: "row", marginBottom: "5px" }}>
-                <button className='bordered' onClick={downloadResume} >↓ Download</button>
+                <button className='bordered' onClick={downloadResume} >⤓ Download</button>
                 <button className='bordered' onClick={() => setDebug(!debug)}>&#x1F41E; Debug</button>
               </div>
               <div id="pdf-container" style={{ display: "flex", flexDirection: "column" }}></div>
