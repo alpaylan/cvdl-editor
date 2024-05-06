@@ -203,7 +203,7 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
 }
 
 const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
-    const elem = props.current.inner as Elem;
+    const elem = props.current.inner as Elem;   
     return (
         <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="panel">
