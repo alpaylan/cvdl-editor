@@ -280,7 +280,6 @@ const RowEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
                 flexDirection: "row",
                 padding: "10px",
                 outline: "1px solid",
-
             }}
             onClick={(e) => {
                 console.error("Clicked on row")

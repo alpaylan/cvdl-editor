@@ -92,3 +92,18 @@ button {
   flex-wrap: wrap;
   justify-content: space-between;
 }
+
+.layout-editor-row:hover {
+  background: rgba(var(--foreground-rgb), 0.1);
+  transition: background 0.2s;
+}
+
+.layout-editor-stack:hover {
+  background: rgba(var(--foreground-rgb), 0.1);
+  transition: background 0.2s;
+}
+
+.layout-editor-item:hover {
+  background: rgba(var(--foreground-rgb), 0.1);
+  transition: background 0.2s;
+}
