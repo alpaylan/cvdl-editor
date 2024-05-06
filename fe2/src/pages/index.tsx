@@ -89,19 +89,13 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
   }
 
   if (action.type === "layout-update") {
-    console.error("Loading layout");
     return newState;
   }
 
   if (action.type === "delete-item") {
-    console.error("Deleting item");
-    console.error(action);
     newState.sections = state.sections.map((section) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
-        console.error("Deleting item");
-        console.error(section.items);
-        console.error(section.items[action.item])
         newSection.items = section.items.filter((item, index) => index !== action.item);
       }
       return newSection;
@@ -168,11 +162,9 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
     const newSection = new ResumeSection();
     const storage = new LocalStorage();
     const layout_schema = storage.load_layout_schema(action.layout_schema);
-    console.error(layout_schema);
     newSection.data_schema = layout_schema.data_schema_name;
     newSection.section_name = action.section_name;
     newSection.layout_schema = action.layout_schema;
-    console.error(newSection);
     newState.sections.push(newSection);
   }
 
@@ -222,17 +214,21 @@ const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: Layout
               })}
             </select>
           </div>
-          <button className='bordered' onClick={() => {
-            setAddingSection(!addingSection);
-          }}> Cancel </button>
-          <button className='bordered' onClick={() => {
-            setAddingSection(!addingSection);
-            dispatch!({
-              type: "add-empty-section",
-              section_name: sectionName,
-              layout_schema: layoutSchema
-            });
-          }}> Add </button>
+          <div className='panel-item'>
+            <button className='bordered' onClick={() => {
+              setAddingSection(!addingSection);
+            }}> Cancel </button>
+          </div>
+          <div className='panel-item'>
+            <button className='bordered' onClick={() => {
+              setAddingSection(!addingSection);
+              dispatch!({
+                type: "add-empty-section",
+                section_name: sectionName,
+                layout_schema: layoutSchema
+              });
+            }}> Add </button>
+          </div>
         </div>
       }
     </>
@@ -341,7 +337,6 @@ function App() {
   useEffect(() => {
     document.addEventListener("keydown", (e) => {
       if (e.key === "s" && e.ctrlKey || e.key === "s" && e.metaKey) {
-        console.error("Saving resume");
         e.preventDefault();
         saveResume();
       }

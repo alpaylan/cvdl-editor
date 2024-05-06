@@ -344,7 +344,6 @@ const RowEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
                 outline: "1px solid",
             }}
             onClick={(e) => {
-                console.error("Clicked on row")
                 props.setLens([...props.lens]);
                 e.stopPropagation();
             }}
@@ -369,7 +368,6 @@ const StackEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
                 outline: "1px solid black",
             }}
             onClick={(e) => {
-                console.error("Clicked on stack")
                 props.setLens([...props.lens]);
                 e.stopPropagation();
             }}
@@ -498,7 +496,6 @@ const LayoutEditor = () => {
         const storage = new LocalStorage();
         layoutSchema.item_layout_schema = sectionLayout;
         setLayoutSchema(layoutSchema);
-        console.error("Dispatching layout update");
         storage.save_layout_schema(layoutSchema);
         dispatch!({ type: "layout-update", layout: layoutSchema });
     }
@@ -520,7 +517,7 @@ const LayoutEditor = () => {
                         <h2>Currently Used Layouts</h2>
                     }
                     {
-                        layoutSchemaNames?.map((name, index) => {
+                        [...new Set(layoutSchemaNames)].map((name, index) => {
                             return <button className="bordered" key={index} onClick={() => {
                                 const storage = new LocalStorage();
                                 const schema = storage.load_layout_schema(name);

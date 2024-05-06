@@ -48,6 +48,7 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
     const availableLayoutSchemas = layoutSchemas.filter((schema) => schema.data_schema_name === section.data_schema);
     const sectionContent = computeSectionContent(section, dataSchema);
     const dispatch = useContext(DocumentDispatchContext);
+    console.log("Rerender")
     return (
         <div
             style={{
@@ -88,6 +89,7 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
                             <select
                                 value={section.layout_schema}
                                 onChange={(e) => {
+                                    console.error("Changing layout schema")
                                     dispatch!({ type: "section-update", section: section.section_name, field: "layout_schema", value: e.target.value });
                                 }}
                             >

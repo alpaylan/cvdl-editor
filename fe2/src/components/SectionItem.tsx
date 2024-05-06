@@ -26,11 +26,10 @@ const ItemHeader = ({ itemContent, showAll, section, item, moveUp, moveDown, cop
 }) => {
     // Pick the first two fields, and render them as the header. The first is normal, the second is italic.
     const dispatch = useContext(DocumentDispatchContext);
-    const [editWindow, setEditWindow] = useState<boolean>(false);
 
     if (itemContent.length < 2) {
         console.log(itemContent);
-        console.error("Section content is too short");
+        console.warn("Section content is too short");
         return <></>
     }
 
