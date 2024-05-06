@@ -396,7 +396,6 @@ const LayoutEditor = () => {
     const dispatch = useContext(DocumentDispatchContext);
 
     const layoutSchemaNames = resumeContext?.layout_schemas();
-    const [layoutSchemaIndex, setLayoutSchemaIndex] = useState<number | null>(null);
     const [layoutSchema, setLayoutSchema] = useState<LayoutSchema | null>(null);
     const [dataSchema, setDataSchema] = useState<DataSchema | null>(null);
     const [layoutSchemaControlPanel, setLayoutSchemaControlPanel] = useState<Lens | null>(null);
@@ -409,16 +408,6 @@ const LayoutEditor = () => {
         const storage = new LocalStorage();
         setAllAvailableLayouts(storage.list_layout_schemas());
     }, []);
-
-    useEffect(() => {
-        const storage = new LocalStorage();
-        if (layoutSchemaNames && layoutSchemaNames.length > 0 && layoutSchemaIndex !== null) {
-            const schema = storage.load_layout_schema(layoutSchemaNames[layoutSchemaIndex]);
-            setLayoutSchema(schema);
-            const dataSchema = storage.load_data_schema(schema.data_schema_name);
-            setDataSchema(dataSchema);
-        }
-    }, [layoutSchemaIndex]);
 
     useEffect(() => {
         if (layoutSchemaControlPanel === null || layoutSchema === null) {
@@ -443,22 +432,26 @@ const LayoutEditor = () => {
     return (
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%", margin: "20px" }}>
             <h1>Layout Editor</h1>
-            <button className="bordered" wi onClick={() => {
-                setLayoutSchemaIndex(null);
+            <button className="bordered" onClick={() => {
                 setCreatingNewLayoutSchema(true);
                 if (dataSchema === null) {
                     return;
                 }
                 setLayoutSchema(LayoutSchema.empty("new schema", dataSchema!.schema_name))
-            }}>Create New Layout Schema</button>
+            }}>☑ Create New Layout Schema</button>
 
             {
                 (layoutSchemaNames && layoutSchemaNames.length !== 0) &&
-                    <h2>Currently Used Layouts</h2>
+                <h2>Currently Used Layouts</h2>
             }
             {
                 layoutSchemaNames?.map((name, index) => {
-                    return <button className="bordered" key={index} onClick={() => setLayoutSchemaIndex(index)}>{name}</button>
+                    return <button className="bordered" key={index} onClick={() => {
+                        const storage = new LocalStorage();
+                        const schema = storage.load_layout_schema(name);
+                        setLayoutSchema(schema);
+                        setLayoutSchemaControlPanel(null);
+                    }}>{name}</button>
                 })
             }
             {
@@ -473,7 +466,7 @@ const LayoutEditor = () => {
                         const storage = new LocalStorage();
                         const schema = storage.load_layout_schema(name);
                         setLayoutSchema(schema);
-                        setLayoutSchemaIndex(null);
+                        setLayoutSchemaControlPanel(null);
                     }}>{name}</button>
                 })
             }
