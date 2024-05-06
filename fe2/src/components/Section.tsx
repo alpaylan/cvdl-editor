@@ -90,7 +90,7 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
                                 value={section.layout_schema}
                                 onChange={(e) => {
                                     console.error("Changing layout schema")
-                                    dispatch!({ type: "section-update", section: section.section_name, field: "layout_schema", value: e.target.value });
+                                    dispatch!({ type: "section-layout-update", section_name: section.section_name, layout_schema_name: e.target.value });
                                 }}
                             >
                                 {

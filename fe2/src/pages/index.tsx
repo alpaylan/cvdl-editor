@@ -69,7 +69,11 @@ type DocumentAction = {
   section_name: string,
   data_schema: string,
   layout_schema: string
-}
+} | {
+  type: "section-layout-update",
+  section_name: string,
+  layout_schema_name: string
+};
 
 export const DocumentReducer = (state: Resume, action: DocumentAction) => {
   console.log(action);
@@ -81,11 +85,14 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
 
   if (action.type === "field-update") {
     newState.sections = state.sections.map((section) => {
+      const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
-        section.items[action.item].fields.set(action.field, action.value);
+        const item = newSection.items[action.item];
+        item.fields.set(action.field, action.value);
       }
-      return section;
+      return newSection;
     });
+    return newState;
   }
 
   if (action.type === "layout-update") {
@@ -168,6 +175,15 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
     newState.sections.push(newSection);
   }
 
+  if (action.type === "section-layout-update") {
+    newState.sections = state.sections.map((section) => {
+      const newSection = ResumeSection.fromJson(section.toJson());
+      if (section.section_name === action.section_name) {
+        newSection.layout_schema = action.layout_schema_name;
+      }
+      return newSection;
+    });
+  }
   return newState;
 }
 
