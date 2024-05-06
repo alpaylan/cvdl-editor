@@ -184,9 +184,9 @@ const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: Layout
   const dispatch = useContext(DocumentDispatchContext);
   const [addingSection, setAddingSection] = useState<boolean>(false);
   const [sectionName, setSectionName] = useState<string>("");
-  const [dataSchema, setDataSchema] = useState<string>("");
+  const [dataSchema, setDataSchema] = useState<string>(props.dataSchemas[0].schema_name ?? "");
   const [availableLayoutSchemas, setAvailableLayoutSchemas] = useState<LayoutSchema[]>(props.layoutSchemas);
-  const [layoutSchema, setLayoutSchema] = useState<string>("");
+  const [layoutSchema, setLayoutSchema] = useState<string>(availableLayoutSchemas[0].schema_name ?? "");
 
   return (
     <>
