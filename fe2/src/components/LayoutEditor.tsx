@@ -178,18 +178,18 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                                                 element.inner.tag === "Elem" ? `Elem(${element.inner.item})` : element.inner.tag
                                             }</button>
                                         <div>
-                                            {<button className="bordered" 
-                                            disabled={index === 0}
+                                            {<button className="bordered"
+                                                disabled={index === 0}
                                                 style={{
                                                     color: index === 0 ? "lightgrey" : undefined,
                                                     borderColor: index === 0 ? "lightgrey" : undefined,
-                                                }} 
+                                                }}
                                                 onClick={() => {
-                                                const temp = container.elements[index];
-                                                container.elements[index] = container.elements[index - 1];
-                                                container.elements[index - 1] = temp;
-                                                props.setLayout(props.layout);
-                                            }}>{container.tag === "Stack" ? "↑" : "←"}</button>}
+                                                    const temp = container.elements[index];
+                                                    container.elements[index] = container.elements[index - 1];
+                                                    container.elements[index - 1] = temp;
+                                                    props.setLayout(props.layout);
+                                                }}>{container.tag === "Stack" ? "↑" : "←"}</button>}
                                             {<button className="bordered"
                                                 disabled={index >= container.elements.length - 1}
                                                 style={{
@@ -464,6 +464,79 @@ const unusedElements = (layout: LayoutSchema, dataSchema: DataSchema) => {
 }
 
 
+const AddNewLayout = (props: { copy: boolean, dataSchemas: DataSchema[], layoutSchemas: LayoutSchema[] }) => {
+    const dispatch = useContext(DocumentDispatchContext);
+    const [addingSection, setAddingSection] = useState<boolean>(false);
+    const [sectionName, setSectionName] = useState<string>("");
+    const [dataSchema, setDataSchema] = useState<string>(props.dataSchemas[0].schema_name ?? "");
+    const [availableLayoutSchemas, setAvailableLayoutSchemas] = useState<LayoutSchema[]>(props.layoutSchemas);
+    const [layoutSchema, setLayoutSchema] = useState<string>(availableLayoutSchemas.length > 0 ? availableLayoutSchemas[0].schema_name ?? "" : "");
+
+    return (
+        <>
+            {!addingSection &&
+                <button className='bordered' onClick={() => {
+                    setAddingSection(!addingSection);
+                }}>⊕ {props.copy ? "Copy Existing Layout" : "Create New Layout from Scratch"} </button>
+            }
+            {addingSection &&
+                <div className='panel'>
+                    <div className='panel-item'>
+                        <label>Layout Name</label>
+                        <input type="text" value={sectionName} placeholder="Layout name" onChange={(e) => setSectionName(e.target.value)} />
+                    </div>
+                    <div className='panel-item'>
+                        <label>Data Schema</label>
+                        <select value={dataSchema} onChange={(e) => {
+                            setDataSchema(e.target.value);
+                            setAvailableLayoutSchemas(props.layoutSchemas.filter((schema) => schema.data_schema_name === e.target.value));
+                        }}>
+                            {props.dataSchemas.map((schema) => {
+                                return <option key={schema.schema_name} value={schema.schema_name}>{schema.schema_name}</option>
+                            })}
+                        </select>
+                    </div>
+                    {props.copy && <div className='panel-item'>
+                        <label>Layout Schema</label>
+                        <select value={layoutSchema} onChange={(e) => {
+                            setLayoutSchema(e.target.value);
+                        }}>
+                            {availableLayoutSchemas.map((schema) => {
+                                return <option key={schema.schema_name} value={schema.schema_name}>{schema.schema_name}</option>
+                            })}
+                        </select>
+                    </div>}
+                    <div style={{ display: "flex", flexDirection: "row" }}>
+                        <div className='panel-item'>
+                            <button className='bordered' onClick={() => {
+                                setAddingSection(!addingSection);
+                            }}> Cancel </button>
+                        </div>
+                        <div className='panel-item'>
+                            <button className='bordered' onClick={() => {
+                                setAddingSection(!addingSection);
+                                const storage = new LocalStorage();
+                                const newLayout = props.copy ?
+                                    storage.load_layout_schema(layoutSchema)
+                                    : new LayoutSchema(sectionName, dataSchema, new SectionLayout(Stack.default_()), new SectionLayout(Stack.default_()));
+                                newLayout.data_schema_name = dataSchema;
+                                newLayout.schema_name = sectionName;
+
+                                storage.save_layout_schema(newLayout);
+                                dispatch!({
+                                    type: "add-layout",
+                                    layout_schema: newLayout
+                                });
+                            }}> Add </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </>
+    )
+}
+
+
 const LayoutEditor = () => {
     const resumeContext = useContext(DocumentContext);
     const dispatch = useContext(DocumentDispatchContext);
@@ -473,9 +546,11 @@ const LayoutEditor = () => {
     const [dataSchema, setDataSchema] = useState<DataSchema | null>(null);
     const [layoutSchemaControlPanel, setLayoutSchemaControlPanel] = useState<Lens | null>(null);
     const [creatingNewLayoutSchema, setCreatingNewLayoutSchema] = useState<boolean>(false);
-    const [layoutVisitor, setLayoutVisitor] = useState<LayoutVisitor | null>(null);
     const [selectedLayout, setSelectedLayout] = useState<SectionLayout | null>(null);
     const [allAvailableLayouts, setAllAvailableLayouts] = useState<string[]>([]);
+    const storage = new LocalStorage();
+    const dataSchemas = storage.list_data_schemas().map((name) => storage.load_data_schema(name));
+    const layoutSchemas = storage.list_layout_schemas().map((name) => storage.load_layout_schema(name));
 
     useEffect(() => {
         const storage = new LocalStorage();
@@ -502,13 +577,9 @@ const LayoutEditor = () => {
     return (
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%", margin: "20px" }}>
             <h1>Layout Editor</h1>
-            <button className="bordered" onClick={() => {
-                setCreatingNewLayoutSchema(true);
-                if (dataSchema === null) {
-                    return;
-                }
-                setLayoutSchema(LayoutSchema.empty("new schema", dataSchema!.schema_name))
-            }}>⊕ Create New Layout Schema</button>
+
+            {(layoutSchemas && dataSchemas) && <AddNewLayout copy={true} layoutSchemas={layoutSchemas} dataSchemas={dataSchemas} />}
+            {(layoutSchemas && dataSchemas) && <AddNewLayout copy={false} layoutSchemas={layoutSchemas} dataSchemas={dataSchemas} />}
 
             <div style={{ display: "flex", flexDirection: "row" }}>
                 <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%" }}>

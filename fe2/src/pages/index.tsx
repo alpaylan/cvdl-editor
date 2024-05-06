@@ -73,6 +73,9 @@ type DocumentAction = {
   type: "section-layout-update",
   section_name: string,
   layout_schema_name: string
+} | {
+  type: "add-layout",
+  layout: LayoutSchema
 };
 
 export const DocumentReducer = (state: Resume, action: DocumentAction) => {
@@ -184,6 +187,11 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
       return newSection;
     });
   }
+
+  if (action.type === "add-layout") {
+    return newState;
+  }
+  
   return newState;
 }
 
