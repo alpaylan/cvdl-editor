@@ -58,8 +58,8 @@ const ItemHeader = ({ itemContent, showAll, section, item, moveUp, moveDown, cop
                     }}>
                         <button onClick={() => dispatch!({ type: 'delete-item', section: section, item: item })} >&#x232B; Delete</button>
                         <button onClick={showAll}>Show All</button>
-                        <button onClick={moveUp}>^ Up</button>
-                        <button onClick={moveDown}>v Down</button>
+                        <button onClick={moveUp}>↑ Up</button>
+                        <button onClick={moveDown}>↓ Down</button>
                         <button onClick={copy}>&#x2398; Copy</button>
                     </div>
                 }

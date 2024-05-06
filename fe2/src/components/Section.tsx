@@ -72,7 +72,7 @@ const Section = ({ section, dataSchemas }: { section: ResumeSection, dataSchemas
                         {
                             showAll ?
                                 <button onClick={() => setShowAll(false)}> x </button> :
-                                <button onClick={() => setShowAll(true)}> v </button>
+                                <button onClick={() => setShowAll(true)}> ↓ </button>
                         }
                     </div>
                 </div>

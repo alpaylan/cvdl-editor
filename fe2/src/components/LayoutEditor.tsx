@@ -106,68 +106,91 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
     const randomKey = Math.random().toString(36).substring(7);
     return (
         <div style={{ display: "flex", flexDirection: "row" }}>
-            <div key={randomKey} style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", width: "300px" }}>
-                <label>Margin Left</label>
-                <input type="number" defaultValue={container.margin.left} onChange={(e) => {
-                    container.margin.left = parseInt(e.target.value);
-                    props.setLayout(props.layout)
-                }} />
-                <label>Margin Right</label>
-                <input type="number" defaultValue={container.margin.right} onChange={(e) => {
-                    container.margin.right = parseInt(e.target.value);
-                    props.setLayout(props.layout)
-                }} />
-                <label>Margin Top</label>
-                <input type="number" defaultValue={container.margin.top} onChange={(e) => {
-                    container.margin.top = parseInt(e.target.value);
-                    props.setLayout(props.layout)
-                }} />
-                <label>Margin Bottom</label>
-                <input type="number" defaultValue={container.margin.bottom} onChange={(e) => {
-                    container.margin.bottom = parseInt(e.target.value);
-                    props.setLayout(props.layout)
-                }} />
-                <label>Alignment</label>
-                <input type="text" defaultValue={container.alignment} onChange={(e) => {
-                    container.alignment = (e.target.value as Alignment);
-                    if (["left", "right", "center", "justify"].includes(e.target.value.toLowerCase())) {
+            <div key={randomKey} style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
+                <div className="panel-item">
+                    <label>Margin Left</label>
+                    <input type="number" defaultValue={container.margin.left} onChange={(e) => {
+                        container.margin.left = parseInt(e.target.value);
                         props.setLayout(props.layout)
-                    }
-                }} />
-                <label>Width</label>
-                <input type="number" defaultValue={container.width.tag === "Fill" ? 100 : container.width.value} onChange={(e) => {
-                    let value = parseInt(e.target.value);
-                    if (value > 0 && value <= 100) {
-                        container.width = Width.percent(parseInt(e.target.value));
+                    }} />
+                </div>
+                <div className="panel-item">
+                    <label>Margin Right</label>
+                    <input type="number" defaultValue={container.margin.right} onChange={(e) => {
+                        container.margin.right = parseInt(e.target.value);
                         props.setLayout(props.layout)
-                    }
-                }} />
-                <label>Elements</label>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                    {
-                        container.elements.map((element, index) => {
-                            return (
-                                <div key={index}>
-                                    <span onClick={() => {
-                                        props.setLayout(props.layout);
-                                        props.lens.push({ 'index': index });
-                                    }}>{element.inner.tag}</span>
-                                    {index > 0 && <button onClick={() => {
-                                        const temp = container.elements[index];
-                                        container.elements[index] = container.elements[index - 1];
-                                        container.elements[index - 1] = temp;
-                                        props.setLayout(props.layout);
-                                    }}>{container.tag === "Stack" ? "^" : "<"}</button>}
-                                    {index < container.elements.length - 1 && <button onClick={() => {
-                                        const temp = container.elements[index];
-                                        container.elements[index] = container.elements[index + 1];
-                                        container.elements[index + 1] = temp;
-                                        props.setLayout(props.layout);
-                                    }}>{container.tag === "Stack" ? "v" : ">"}</button>}
-                                </div>
-                            )
-                        })
-                    }
+                    }} />
+                </div>
+                <div className="panel-item">
+                    <label>Margin Top</label>
+                    <input type="number" defaultValue={container.margin.top} onChange={(e) => {
+                        container.margin.top = parseInt(e.target.value);
+                        props.setLayout(props.layout)
+                    }} />
+                </div>
+                <div className="panel-item">
+                    <label>Margin Bottom</label>
+                    <input type="number" defaultValue={container.margin.bottom} onChange={(e) => {
+                        container.margin.bottom = parseInt(e.target.value);
+                        props.setLayout(props.layout)
+                    }} />
+                </div>
+                <div className="panel-item">
+                    <label>Alignment</label>
+                    <input type="text" defaultValue={container.alignment} onChange={(e) => {
+                        container.alignment = (e.target.value as Alignment);
+                        if (["left", "right", "center", "justify"].includes(e.target.value.toLowerCase())) {
+                            props.setLayout(props.layout)
+                        }
+                    }} />
+                </div>
+                <div className="panel-item">
+                    <label>Width</label>
+                    <input type="number" defaultValue={container.width.tag === "Fill" ? 100 : container.width.value} onChange={(e) => {
+                        let value = parseInt(e.target.value);
+                        if (value > 0 && value <= 100) {
+                            container.width = Width.percent(parseInt(e.target.value));
+                            props.setLayout(props.layout)
+                        }
+                    }} />
+                </div>
+                <div className="panel-item-elements">
+                    <label>Elements</label>
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                        {
+                            container.elements.map((element, index) => {
+                                return (
+                                    <div key={index} style={{
+                                        display: "flex",
+                                        flexDirection: "row",
+                                        justifyContent: "space-between",
+
+                                    }}>
+                                        <button className="bordered" onClick={() => {
+                                            props.setLayout(props.layout);
+                                            props.lens.push({ 'index': index });
+                                        }}>{
+                                                element.inner.tag === "Elem" ? `Elem(${element.inner.item})` : element.inner.tag
+                                            }</button>
+                                        <div>
+                                            {index > 0 && <button className="bordered" onClick={() => {
+                                                const temp = container.elements[index];
+                                                container.elements[index] = container.elements[index - 1];
+                                                container.elements[index - 1] = temp;
+                                                props.setLayout(props.layout);
+                                            }}>{container.tag === "Stack" ? "↑" : "<"}</button>}
+                                            {index < container.elements.length - 1 && <button className="bordered" onClick={() => {
+                                                const temp = container.elements[index];
+                                                container.elements[index] = container.elements[index + 1];
+                                                container.elements[index + 1] = temp;
+                                                props.setLayout(props.layout);
+                                            }}>{container.tag === "Stack" ? "↓" : ">"}</button>}
+                                        </div>
+                                    </div>
+                                )
+                            })
+                        }
+                    </div>
                 </div>
             </div>
         </div>
@@ -180,74 +203,65 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
     const randomKey = Math.random().toString(36).substring(7);
     return (
         <div style={{ display: "flex", flexDirection: "row" }}>
-            <div key={randomKey} style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", width: "300px" }}>
-                <label>Font Name</label>
-                <input type="text" defaultValue={elem.font.name} onChange={(e) => {
-                    elem.font.name = e.target.value;
-                    props.setLayout(props.layout)
-                }} />
-                <label>Font Size</label>
-                <input type="number" defaultValue={elem.font.size} onChange={(e) => {
-                    let value = parseInt(e.target.value);
-                    if (value > 8) {
-                        elem.font.size = parseInt(e.target.value);
+            <div key={randomKey} className="panel">
+                <div className="panel-item">
+                    <label>Font Name</label>
+                    <input type="text" defaultValue={elem.font.name} onChange={(e) => {
+                        elem.font.name = e.target.value;
                         props.setLayout(props.layout)
-                    }
+                    }} />
+                </div>
+                <div className="panel-item">
+                    <label>Font Size</label>
+                    <input type="number" defaultValue={elem.font.size} onChange={(e) => {
+                        let value = parseInt(e.target.value);
+                        if (value > 8) {
+                            elem.font.size = parseInt(e.target.value);
+                            props.setLayout(props.layout)
+                        }
+                    }} />
+                </div>
+                <div className="panel-item">
+                    <label>Font Weight</label>
+                    <input type="text" defaultValue={elem.font.weight} onChange={(e) => {
+                        elem.font.weight = e.target.value as FontWeight;
+                        console.error("Writing font weight to " + e.target.value);
+                        if (["100", "Thin", "Hairline", "200", "Extra Light", "Ultra Light", "300", "Light", "400", "Normal", "500", "Medium", "600", "Semi Bold", "Demi Bold", "700", "Bold", "800", "Extra Bold", "Ultra Bold", "900", "Black", "Heavy"].includes(e.target.value)) {
+                            console.error("Setting font weight to " + e.target.value);
+                            props.setLayout(props.layout)
+                        }
 
-                }} />
-                <label>Font Weight</label>
-                <input type="text" defaultValue={elem.font.weight} onChange={(e) => {
-                    elem.font.weight = e.target.value as FontWeight;
-                    console.error("Writing font weight to " + e.target.value);
-                    if (["100", "Thin", "Hairline", "200", "Extra Light", "Ultra Light", "300", "Light", "400", "Normal", "500", "Medium", "600", "Semi Bold", "Demi Bold", "700", "Bold", "800", "Extra Bold", "Ultra Bold", "900", "Black", "Heavy"].includes(e.target.value)) {
-                        console.error("Setting font weight to " + e.target.value);
-                        props.setLayout(props.layout)
-                    }
-
-                }} />
-                <label>Font Style</label>
-                <input type="text" defaultValue={elem.font.style} onChange={(e) => {
-                    elem.font.style = e.target.value as FontStyle;
-                    if (["normal", "italic", "oblique"].includes(e.target.value.toLowerCase())) {
-                        props.setLayout(props.layout)
-                    }
-                }} />
-                <label>Margin Left</label>
-                <input type="number" defaultValue={elem.margin.left} onChange={(e) => {
-                    elem.margin.left = parseInt(e.target.value);
-                    props.setLayout(props.layout)
-                }} />
-                <label>Margin Right</label>
-                <input type="number" defaultValue={elem.margin.right} onChange={(e) => {
-                    elem.margin.right = parseInt(e.target.value);
-                    props.setLayout(props.layout)
-                }} />
-                <label>Margin Top</label>
-                <input type="number" defaultValue={elem.margin.top} onChange={(e) => {
-                    elem.margin.top = parseInt(e.target.value);
-                    props.setLayout(props.layout)
-                }} />
-                <label>Margin Bottom</label>
-                <input type="number" defaultValue={elem.margin.bottom} onChange={(e) => {
-                    elem.margin.bottom = parseInt(e.target.value);
-                    props.setLayout(props.layout)
-                }} />
-                <label>Alignment</label>
-                <input type="text" defaultValue={elem.alignment} onChange={(e) => {
-                    elem.alignment = e.target.value as Alignment;
-                    if (["left", "right", "center", "justify"].includes(e.target.value.toLowerCase())) {
-                        props.setLayout(props.layout)
-                    }
-                }} />
-                <label>Width</label>
-                <input type="number" defaultValue={elem.width.tag === "Fill" ? 100 : elem.width.value} onChange={(e) => {
-                    let value = parseInt(e.target.value);
-                    if (value > 0 && value <= 100) {
-                        elem.width = Width.percent(parseInt(e.target.value));
-                        console.error(props.layout)
-                        props.setLayout(props.layout)
-                    }
-                }} />
+                    }} />
+                </div>
+                <div className="panel-item">
+                    <label>Font Style</label>
+                    <input type="text" defaultValue={elem.font.style} onChange={(e) => {
+                        elem.font.style = e.target.value as FontStyle;
+                        if (["normal", "italic", "oblique"].includes(e.target.value.toLowerCase())) {
+                            props.setLayout(props.layout)
+                        }
+                    }} />
+                </div>
+                <div className="panel-item">
+                    <label>Alignment</label>
+                    <input type="text" defaultValue={elem.alignment} onChange={(e) => {
+                        elem.alignment = e.target.value as Alignment;
+                        if (["left", "right", "center", "justify"].includes(e.target.value.toLowerCase())) {
+                            props.setLayout(props.layout)
+                        }
+                    }} />
+                </div>
+                <div className="panel-item">
+                    <label>Width</label>
+                    <input type="number" defaultValue={elem.width.tag === "Fill" ? 100 : elem.width.value} onChange={(e) => {
+                        let value = parseInt(e.target.value);
+                        if (value > 0 && value <= 100) {
+                            elem.width = Width.percent(parseInt(e.target.value));
+                            console.error(props.layout)
+                            props.setLayout(props.layout)
+                        }
+                    }} />
+                </div>
 
             </div>
 
@@ -413,8 +427,6 @@ const LayoutEditor = () => {
         if (layoutSchemaControlPanel === null || layoutSchema === null) {
             return;
         }
-        console.error("Layout schema control panel is not null");
-        console.error(layoutSchemaControlPanel);
         const current = followLens(layoutSchemaControlPanel!, layoutSchema!.item_layout_schema);
         setSelectedLayout(current);
     }, [layoutSchema, layoutSchemaControlPanel]);
@@ -440,36 +452,42 @@ const LayoutEditor = () => {
                 setLayoutSchema(LayoutSchema.empty("new schema", dataSchema!.schema_name))
             }}>☑ Create New Layout Schema</button>
 
-            {
-                (layoutSchemaNames && layoutSchemaNames.length !== 0) &&
-                <h2>Currently Used Layouts</h2>
-            }
-            {
-                layoutSchemaNames?.map((name, index) => {
-                    return <button className="bordered" key={index} onClick={() => {
-                        const storage = new LocalStorage();
-                        const schema = storage.load_layout_schema(name);
-                        setLayoutSchema(schema);
-                        setLayoutSchemaControlPanel(null);
-                    }}>{name}</button>
-                })
-            }
-            {
-                <h2>All Available Layouts</h2>
-            }
-            {
-                allAvailableLayouts.map((name, index) => {
-                    if (layoutSchemaNames?.includes(name)) {
-                        return null;
+            <div style={{ display: "flex", flexDirection: "row" }}>
+                <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%" }}>
+                    {
+                        (layoutSchemaNames && layoutSchemaNames.length !== 0) &&
+                        <h2>Currently Used Layouts</h2>
                     }
-                    return <button className="bordered" key={index} onClick={() => {
-                        const storage = new LocalStorage();
-                        const schema = storage.load_layout_schema(name);
-                        setLayoutSchema(schema);
-                        setLayoutSchemaControlPanel(null);
-                    }}>{name}</button>
-                })
-            }
+                    {
+                        layoutSchemaNames?.map((name, index) => {
+                            return <button className="bordered" key={index} onClick={() => {
+                                const storage = new LocalStorage();
+                                const schema = storage.load_layout_schema(name);
+                                setLayoutSchema(schema);
+                                setLayoutSchemaControlPanel(null);
+                            }}>{name}</button>
+                        })
+                    }
+                </div>
+
+
+                <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%" }}>
+                    <h2>All Available Layouts</h2>
+                    {
+                        allAvailableLayouts.map((name, index) => {
+                            if (layoutSchemaNames?.includes(name)) {
+                                return null;
+                            }
+                            return <button className="bordered" key={index} onClick={() => {
+                                const storage = new LocalStorage();
+                                const schema = storage.load_layout_schema(name);
+                                setLayoutSchema(schema);
+                                setLayoutSchemaControlPanel(null);
+                            }}>{name}</button>
+                        })
+                    }
+                </div>
+            </div>
 
             {
                 layoutSchema !== null ?
