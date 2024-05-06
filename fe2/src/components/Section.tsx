@@ -5,6 +5,7 @@ import SectionItemField from './SectionItemField';
 import { useContext, useState } from 'react';
 import SectionItem from './SectionItem';
 import { DocumentDispatchContext } from '@/pages';
+import { LayoutSchema } from 'cvdl-ts/dist/LayoutSchema';
 
 export type FieldProps = {
     name: string;
@@ -15,8 +16,7 @@ export type FieldProps = {
 export type ItemProps = FieldProps[];
 export type SectionProps = ItemProps[];
 
-const computeSectionContent = (section: ResumeSection, dataSchemas: DataSchema[]): SectionProps => {
-    const dataSchema = dataSchemas.find((schema) => schema.schema_name === section.data_schema);
+const computeSectionContent = (section: ResumeSection, dataSchema?: DataSchema): SectionProps => {
     if (!dataSchema) {
         return [];
     }
@@ -35,18 +35,18 @@ const computeSectionContent = (section: ResumeSection, dataSchemas: DataSchema[]
         })
         sectionContent.push(itemContent);
     })
-    console.log(sectionContent);
     return sectionContent;
 }
 
 
-const Section = ({ section, dataSchemas }: { section: ResumeSection, dataSchemas: DataSchema[] }) => {
+const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSection, dataSchemas: DataSchema[], layoutSchemas: LayoutSchema[] }) => {
     const [showAll, setShowAll] = useState<boolean>(false);
     const toggleShowAll = () => {
         setShowAll(!showAll);
     }
-
-    const sectionContent = computeSectionContent(section, dataSchemas);
+    const dataSchema = dataSchemas.find((schema) => schema.schema_name === section.data_schema);
+    const availableLayoutSchemas = layoutSchemas.filter((schema) => schema.data_schema_name === section.data_schema);
+    const sectionContent = computeSectionContent(section, dataSchema);
     const dispatch = useContext(DocumentDispatchContext);
     return (
         <div
@@ -59,8 +59,8 @@ const Section = ({ section, dataSchemas }: { section: ResumeSection, dataSchemas
                 marginBottom: "10px"
             }}
         >
-            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", padding: "10px"}}>
-                <div style={{ display: "flex", flexDirection: "row"}}>
+            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", padding: "10px" }}>
+                <div style={{ display: "flex", flexDirection: "row" }}>
                     <h1 key={section.section_name} style={{ fontSize: "1.3em", fontWeight: "bold", marginRight: "10px" }} > {section.section_name} </h1>
 
                     <div className='bordered'>{sectionContent.length}</div>
@@ -78,11 +78,28 @@ const Section = ({ section, dataSchemas }: { section: ResumeSection, dataSchemas
 
                 showAll &&
                 <>
-                    <div style={{ flexDirection: "row" }}>
-                        <b > Layout: </b>
-                        <input list="layout-schemas"
-                            defaultValue={section.layout_schema}
-                        />
+                    <div style={{ display: "flex", flexDirection: "row"}}>
+                        <div className="panel-item" style={{ width: 'fit-content' }}>
+                            <label>Data Schema</label>
+                            <span className="bordered-full">{section.data_schema}</span>
+                        </div>
+                        <div className="panel-item" style={{ width: 'fit-content' }}>
+                            <label>Layout Schema</label>
+                            <select
+                                value={section.layout_schema}
+                                onChange={(e) => {
+                                    dispatch!({ type: "section-update", section: section.section_name, field: "layout_schema", value: e.target.value });
+                                }}
+                            >
+                                {
+                                    availableLayoutSchemas.map((schema) => {
+                                        return (
+                                            <option key={schema.schema_name} value={schema.schema_name}>{schema.schema_name}</option>
+                                        )
+                                    })
+                                }
+                            </select>
+                        </div>
                     </div>
                     {
                         sectionContent.map((itemContent, index) => {

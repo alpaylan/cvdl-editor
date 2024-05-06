@@ -179,32 +179,61 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
   return newState;
 }
 
-const AddNewSection = () => {
+const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: LayoutSchema[] }) => {
+
   const dispatch = useContext(DocumentDispatchContext);
   const [addingSection, setAddingSection] = useState<boolean>(false);
   const [sectionName, setSectionName] = useState<string>("");
+  const [dataSchema, setDataSchema] = useState<string>("");
+  const [availableLayoutSchemas, setAvailableLayoutSchemas] = useState<LayoutSchema[]>(props.layoutSchemas);
   const [layoutSchema, setLayoutSchema] = useState<string>("");
+
   return (
     <>
-      {!addingSection && <button className='bordered' onClick={() => {
-        setAddingSection(!addingSection);
-      }}>⊕ Add new section </button>
+      {!addingSection &&
+        <button className='bordered' onClick={() => {
+          setAddingSection(!addingSection);
+        }}>⊕ Add new section </button>
       }
-      {addingSection && <div>
-        <input type="text" value={sectionName} placeholder="Section name" onChange={(e) => setSectionName(e.target.value)} />
-        <input type="text" value={layoutSchema} placeholder="Layout schema" onChange={(e) => setLayoutSchema(e.target.value)} />
-        <button className='bordered' onClick={() => {
-          setAddingSection(!addingSection);
-        }}> Cancel </button>
-        <button className='bordered' onClick={() => {
-          setAddingSection(!addingSection);
-          dispatch!({
-            type: "add-empty-section",
-            section_name: sectionName,
-            layout_schema: layoutSchema
-          });
-        }}> Add </button>
-      </div>
+      {addingSection &&
+        <div className='panel'>
+          <div className='panel-item'>
+            <label>Section Name</label>
+            <input type="text" value={sectionName} placeholder="Section name" onChange={(e) => setSectionName(e.target.value)} />
+          </div>
+          <div className='panel-item'>
+            <label>Data Schema</label>
+            <select value={dataSchema} onChange={(e) => {
+              setDataSchema(e.target.value);
+              setAvailableLayoutSchemas(props.layoutSchemas.filter((schema) => schema.data_schema_name === e.target.value));
+            }}>
+              {props.dataSchemas.map((schema) => {
+                return <option key={schema.schema_name} value={schema.schema_name}>{schema.schema_name}</option>
+              })}
+            </select>
+          </div>
+          <div className='panel-item'>
+            <label>Layout Schema</label>
+            <select value={layoutSchema} onChange={(e) => {
+              setLayoutSchema(e.target.value);
+            }}>
+              {availableLayoutSchemas.map((schema) => {
+                return <option key={schema.schema_name} value={schema.schema_name}>{schema.schema_name}</option>
+              })}
+            </select>
+          </div>
+          <button className='bordered' onClick={() => {
+            setAddingSection(!addingSection);
+          }}> Cancel </button>
+          <button className='bordered' onClick={() => {
+            setAddingSection(!addingSection);
+            dispatch!({
+              type: "add-empty-section",
+              section_name: sectionName,
+              layout_schema: layoutSchema
+            });
+          }}> Add </button>
+        </div>
       }
     </>
   )
@@ -218,7 +247,7 @@ function App() {
   const [storage, setStorage] = useState<LocalStorage>(new LocalStorage());
   const [resume, setResume] = useState<string>("resume5");
   // const [resumeData, setResumeData] = useState<Resume | null>(state)
-  const [layoutSchemas, setLayoutSchemas] = useState<string[] | null>(null)
+  const [layoutSchemas, setLayoutSchemas] = useState<LayoutSchema[] | null>(null)
   const [resumeLayout, setResumeLayout] = useState<ResumeLayout | null>(null)
   const [dataSchemas, setDataSchemas] = useState<DataSchema[] | null>(null)
   const [fontDict, setFontDict] = useState<FontDict>(new FontDict());
@@ -238,28 +267,22 @@ function App() {
       return;
     }
     const data = storage.load_resume(resume);
-    console.error("Running load");
     dispatch({ type: "load", value: data });
 
   }, [resume, storage, storageInitiated]);
 
   useEffect(() => {
-    console.error("Running effect");
-    console.error(resumeData);
-    console.error(resumeData.data_schemas());
     if (!storageInitiated) {
       return;
     }
-    const data_schema_loader = async () => {
-      if (!resumeData) {
-        return [];
-      }
-      console.error(resumeData.data_schemas());
-      return await Promise.all(resumeData.data_schemas().map((schema) => storage.load_data_schema(schema)));
+    const data_schema_loader = () => {
+      const dataSchemaNames = storage.list_data_schemas();
+      return dataSchemaNames.map((schema) => storage.load_data_schema(schema));
     }
 
-    const layout_schema_loader = async () => {
-      return await storage.list_layout_schemas();
+    const layout_schema_loader = () => {
+      const layoutSchemaNames = storage.list_layout_schemas();
+      return layoutSchemaNames.map((schema) => storage.load_layout_schema(schema));
     }
 
     const resume_layout_loader = async () => {
@@ -269,8 +292,8 @@ function App() {
       return await storage.load_resume_layout(resumeData.resume_layout());
     }
 
-    data_schema_loader().then((schemas) => setDataSchemas(schemas))
-    layout_schema_loader().then((schemas) => setLayoutSchemas(schemas))
+    setDataSchemas(data_schema_loader())
+    setLayoutSchemas(layout_schema_loader())
     resume_layout_loader().then((layout) => setResumeLayout(layout))
 
   }, [resumeData, storage, storageInitiated]);
@@ -348,11 +371,11 @@ function App() {
             {currentTab === "content-editor" &&
               <div style={{ display: "flex", flexDirection: "column", width: "50%", margin: "20px" }}>
                 <h1>Content Editor</h1>
-                <AddNewSection />
+                {(layoutSchemas && dataSchemas) && <AddNewSection layoutSchemas={layoutSchemas!} dataSchemas={dataSchemas!} />}
                 {(resumeData && layoutSchemas) &&
                   resumeData.sections.map((section, index) => {
                     return (
-                      <Section key={index} section={section} dataSchemas={dataSchemas!} />
+                      <Section key={index} section={section} dataSchemas={dataSchemas!} layoutSchemas={layoutSchemas!} />
                     )
                   })
                 }

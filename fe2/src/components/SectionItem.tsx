@@ -35,34 +35,17 @@ const ItemHeader = ({ itemContent, showAll, section, item, moveUp, moveDown, cop
     }
 
     return (
-        <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between" }} onClick={showAll}>
             <div style={{ display: "flex", flexDirection: "row" }}>
                 {itemContent[0].isActive && <span>{itemContent[0].value}</span>}
                 ,&nbsp;
                 {itemContent[1].isActive && <span style={{ fontStyle: "italic" }}>{itemContent[1].value}</span>}
             </div>
             <div>
-                <button onClick={() => setEditWindow(!editWindow)} style={{ float: "right" }} >&#x270E; Edit</button>
-                {editWindow &&
-                    <div style={{
-                        position: "absolute",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-start",
-                        padding: "5px",
-                        border: "1px solid black",
-                        backgroundColor: "white",
-                        marginLeft: "50px",
-                        marginTop: "-53px",
-                        borderRadius: "5px",
-                    }}>
-                        <button onClick={() => dispatch!({ type: 'delete-item', section: section, item: item })} >&#x232B; Delete</button>
-                        <button onClick={showAll}>Show All</button>
-                        <button onClick={moveUp}>↑ Up</button>
-                        <button onClick={moveDown}>↓ Down</button>
-                        <button onClick={copy}>&#x2398; Copy</button>
-                    </div>
-                }
+                <button className='bordered' onClick={(e) => { dispatch!({ type: 'delete-item', section: section, item: item }); e.stopPropagation() }} >&#x232B;</button>
+                <button className='bordered' onClick={(e) => { moveUp(); e.stopPropagation() }}>↑</button>
+                <button className='bordered' onClick={(e) => { moveDown(); e.stopPropagation() }}>↓</button>
+                <button className='bordered' onClick={(e) => { copy(); e.stopPropagation() }}>&#x2398;</button>
             </div>
         </div>
     )
@@ -79,19 +62,16 @@ const SectionItem = ({ section, item, itemContent }: { section: string, item: nu
 
     return (
         <div
+            className={`bordered-full ${!showAll ? 'clickable' : ''}`}
             style={{
                 display: "flex",
                 flexDirection: "column",
                 padding: "10px",
-                border: "1px solid black",
-                borderRadius: "5px",
-                margin: "5px",
             }}
         >
 
             {
                 showAll ?
-
                     (
                         <>
                             <div style={{ display: "flex", flexDirection: "row" }}>
@@ -131,19 +111,19 @@ const SectionItem = ({ section, item, itemContent }: { section: string, item: nu
                                     </div>
                                 </div>
 
-                                <button style={{ marginRight: "0px", marginLeft: "auto", marginTop: "0px", marginBottom: "auto" }} onClick={toggleShowAll}>x</button>
+                                <button className='bordered' style={{ marginRight: "0px", marginLeft: "auto", marginTop: "0px", marginBottom: "auto" }} onClick={toggleShowAll}>✗</button>
                             </div>
                         </>
                     )
-                    : <ItemHeader 
-                        itemContent={fields} 
-                        section={section} 
-                        item={item} 
-                        showAll={toggleShowAll} 
-                        moveDown={() => dispatch!({ type: 'move-item', section: section, item: item, direction: 'down'})}
-                        moveUp={() => dispatch!({ type: 'move-item', section: section, item: item, direction: 'up'})}
+                    : <ItemHeader
+                        itemContent={fields}
+                        section={section}
+                        item={item}
+                        showAll={toggleShowAll}
+                        moveDown={() => dispatch!({ type: 'move-item', section: section, item: item, direction: 'down' })}
+                        moveUp={() => dispatch!({ type: 'move-item', section: section, item: item, direction: 'up' })}
                         copy={() => dispatch!({ type: 'copy-item', section: section, item: item })}
-                        />
+                    />
             }
         </div>
     )
