@@ -109,7 +109,7 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
         <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="panel" style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
                 <div style={{ width: "100%", padding: "20px" }}>
-                    <b>{container.tag}({container.elements.map((layout) => 
+                    <b>{container.tag}({container.elements.map((layout) =>
                         layout.inner.tag === "Elem" ? layout.inner.item : layout.inner.tag
                     ).join(" | ")})</b>
                 </div>
@@ -127,13 +127,27 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                 </div>
                 <div className="panel-item">
                     <label>Width</label>
-                    <input type="number" value={container.width.tag === "Fill" ? 100 : container.width.value} onChange={(e) => {
-                        let value = parseInt(e.target.value);
-                        if (value > 0 && value <= 100) {
-                            container.width = Width.percent(parseInt(e.target.value));
-                            props.setLayout(props.layout)
-                        }
-                    }} />
+
+                    <select name="width" value={container.width.tag} onChange={(e) => {
+                        container.width.tag = (e.target.value as "Fill" | "Percent" | "Absolute");
+                        props.setLayout(props.layout)
+
+                    }}>
+                        <option value="Fill">Fill</option>
+                        <option value="Percent">Percent(%)</option>
+                        <option value="Absolute">Absolute(px)</option>
+                    </select>
+                    {
+                        container.width.tag !== "Fill" &&
+                        <input type="number" value={container.width.value} onChange={(e) => {
+                            let value = parseInt(e.target.value);
+                            if (value > 0) {
+                                // @ts-ignore
+                                container.width.value = value;
+                                props.setLayout(props.layout)
+                            }
+                        }} />
+                    }
                 </div>
                 <div className="panel-item">
                     <button className="bordered" onClick={() => {
@@ -164,18 +178,30 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                                                 element.inner.tag === "Elem" ? `Elem(${element.inner.item})` : element.inner.tag
                                             }</button>
                                         <div>
-                                            {index > 0 && <button className="bordered" onClick={() => {
+                                            {<button className="bordered" 
+                                            disabled={index === 0}
+                                                style={{
+                                                    color: index === 0 ? "lightgrey" : undefined,
+                                                    borderColor: index === 0 ? "lightgrey" : undefined,
+                                                }} 
+                                                onClick={() => {
                                                 const temp = container.elements[index];
                                                 container.elements[index] = container.elements[index - 1];
                                                 container.elements[index - 1] = temp;
                                                 props.setLayout(props.layout);
                                             }}>{container.tag === "Stack" ? "↑" : "←"}</button>}
-                                            {index < container.elements.length - 1 && <button className="bordered" onClick={() => {
-                                                const temp = container.elements[index];
-                                                container.elements[index] = container.elements[index + 1];
-                                                container.elements[index + 1] = temp;
-                                                props.setLayout(props.layout);
-                                            }}>{container.tag === "Stack" ? "↓" : "→"}</button>}
+                                            {<button className="bordered"
+                                                disabled={index >= container.elements.length - 1}
+                                                style={{
+                                                    color: index >= container.elements.length - 1 ? "lightgrey" : undefined,
+                                                    borderColor: index >= container.elements.length - 1 ? "lightgrey" : undefined,
+                                                }}
+                                                onClick={() => {
+                                                    const temp = container.elements[index];
+                                                    container.elements[index] = container.elements[index + 1];
+                                                    container.elements[index + 1] = temp;
+                                                    props.setLayout(props.layout);
+                                                }}>{container.tag === "Stack" ? "↓" : "→"}</button>}
                                         </div>
                                     </div>
                                 )
@@ -203,7 +229,8 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
 }
 
 const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
-    const elem = props.current.inner as Elem;   
+    const elem = props.current.inner as Elem;
+    const [fontSize, setFontSize] = useState(elem.font.size);
     return (
         <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="panel">
@@ -221,8 +248,9 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                 </div>
                 <div className="panel-item">
                     <label>Font Size</label>
-                    <input type="number" value={elem.font.size} onChange={(e) => {
+                    <input type="number" value={fontSize} onChange={(e) => {
                         let value = parseInt(e.target.value);
+                        setFontSize(value);
                         if (value > 8) {
                             elem.font.size = parseInt(e.target.value);
                             props.setLayout(props.layout)
