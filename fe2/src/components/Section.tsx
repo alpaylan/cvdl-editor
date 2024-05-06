@@ -51,8 +51,8 @@ const Section = ({ section, dataSchemas }: { section: ResumeSection, dataSchemas
                 flexDirection: "column",
                 border: "1px solid black",
                 borderRadius: "5px",
-                margin: "5px",
                 padding: "10px",
+                marginBottom: "10px"
             }}
         >
             <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", padding: "10px" }}>

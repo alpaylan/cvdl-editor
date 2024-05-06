@@ -23,7 +23,6 @@ import Section from '@/components/Section';
 import { render as domRender } from '@/logic/DomLayout';
 import Layout from '@/components/layout';
 import LayoutEditor from '@/components/LayoutEditor';
-import { data } from 'autoprefixer';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -216,11 +215,7 @@ function App() {
   console.info = () => { };
 
   const [resumeData, dispatch] = useReducer(DocumentReducer, new Resume("SingleColumnSchema", []));
-  console.error("Rerendering app")
-  // console.log(state);
   const [storage, setStorage] = useState<LocalStorage>(new LocalStorage());
-  const [numPages, setNumPages] = useState<number>();
-  const [pdf, setPdf] = useState<string | null>(null);
   const [resume, setResume] = useState<string>("resume5");
   // const [resumeData, setResumeData] = useState<Resume | null>(state)
   const [layoutSchemas, setLayoutSchemas] = useState<string[] | null>(null)
@@ -230,6 +225,7 @@ function App() {
   const [debug, setDebug] = useState<boolean>(false);
   const [storageInitiated, setStorageInitiated] = useState<boolean>(false);
   const [addingSection, setAddingSection] = useState<boolean>(false);
+  const [currentTab, setCurrentTab] = useState<"content-editor" | "layout-editor" | "schema-editor">("content-editor");
   useEffect(() => {
     require('../registerStaticFiles.js');
     storage.initiate_storage().then(() => {
@@ -295,10 +291,6 @@ function App() {
     });
   }, [resume, fontDict, debug, storage, resumeData]);
 
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
-    setNumPages(numPages);
-  }
-
   const saveResume = () => {
     if (!resumeData) {
       return;
@@ -338,12 +330,24 @@ function App() {
       <DocumentDispatchContext.Provider value={dispatch}>
         <Layout>
           <div style={{ display: "flex", flexDirection: "row" }}>
-            <div style={{ display: "flex", width: "50%" }}>
-              <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-                <button onClick={downloadResume} >Download</button>
-                <button onClick={() => setDebug(!debug)} >Invert Debug</button>
-                <b>Sections</b>
+            <div style={{ display: "flex", flexDirection: "column", margin: "20px" }}>
+              <button className='bordered' style={{
+                backgroundColor: currentTab === "content-editor" ? "#101010" : "white",
+                color: currentTab === "content-editor" ? "white" : "black"
+              }} onClick={() => setCurrentTab("content-editor")}>Content Editor</button>
+              <button className='bordered' style={{
+                backgroundColor: currentTab === "layout-editor" ? "#101010" : "white",
+                color: currentTab === "layout-editor" ? "white" : "black"
+              }} onClick={() => setCurrentTab("layout-editor")}>Layout Editor</button>
+              <button className='bordered' style={{
+                backgroundColor: currentTab === "schema-editor" ? "#101010" : "white",
+                color: currentTab === "schema-editor" ? "white" : "black"
+              }} onClick={() => setCurrentTab("schema-editor")}>Schema Editor</button>
+            </div>
 
+            {currentTab === "content-editor" &&
+              <div style={{ display: "flex", flexDirection: "column", width: "50%", margin: "20px" }}>
+                <h1>Content Editor</h1>
                 <AddNewSection />
                 {(resumeData && layoutSchemas) &&
                   resumeData.sections.map((section, index) => {
@@ -352,10 +356,17 @@ function App() {
                     )
                   })
                 }
+              </div>}
+            {currentTab === "layout-editor" &&
+              <LayoutEditor />
+            }
+            <div style={{ display: "flex", flexDirection: "column", margin: "20px" }}>
+              <div style={{ display: "flex", flexDirection: "row", marginBottom: "5px" }}>
+                <button className='bordered' onClick={downloadResume} >↓ Download</button>
+                <button className='bordered' onClick={() => setDebug(!debug)}>&#x1F41E; Debug</button>
               </div>
+              <div id="pdf-container" style={{ display: "flex", flexDirection: "column" }}></div>
             </div>
-            <LayoutEditor />
-            <div id="pdf-container" style={{ display: "flex", flexDirection: "column" }}></div>
           </div>
         </Layout>
       </DocumentDispatchContext.Provider>

@@ -5,39 +5,61 @@
 
 :root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
+  --background-start-rgb: 255, 255, 255;
   --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 0, 0, 0;
-    --background-start-rgb: 255, 255, 255;
-    --background-end-rgb: 255, 255, 255;
-  }
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
+  background: linear-gradient(to bottom,
       transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+
+.bordered {
+  border: 1px solid rgb(var(--foreground-rgb));
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-bottom: 5px;
+  width: fit-content;
+}
+
+.bordered:hover {
+  background: rgba(var(--foreground-rgb), 0.1);
+  transition: background 0.2s;
+}
+
+input[type="text"] {
+  border: 1px solid rgb(var(--foreground-rgb));
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-bottom: 5px;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border: 1px solid rgb(var(--foreground-rgb));
+  box-shadow: 0 0 5px rgba(var(--foreground-rgb), 0.5);
 }
 
 button {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-    &.bordered {
-      border: 1px solid rgb(var(--foreground-rgb));
-      border-radius: 5px;
-      padding: 5px 10px;
-    }
+  &.bordered {
+    border: 1px solid rgb(var(--foreground-rgb));
+    border-radius: 5px;
+    padding: 5px 10px;
+  }
 }
