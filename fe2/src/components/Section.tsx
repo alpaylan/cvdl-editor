@@ -42,6 +42,10 @@ const computeSectionContent = (section: ResumeSection, dataSchemas: DataSchema[]
 
 const Section = ({ section, dataSchemas }: { section: ResumeSection, dataSchemas: DataSchema[] }) => {
     const [showAll, setShowAll] = useState<boolean>(false);
+    const toggleShowAll = () => {
+        setShowAll(!showAll);
+    }
+
     const sectionContent = computeSectionContent(section, dataSchemas);
     const dispatch = useContext(DocumentDispatchContext);
     return (
@@ -55,26 +59,19 @@ const Section = ({ section, dataSchemas }: { section: ResumeSection, dataSchemas
                 marginBottom: "10px"
             }}
         >
-            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", padding: "10px" }}>
-                <h1 key={section.section_name} style={{ fontSize: "1.3em", fontWeight: "bold" }} > {section.section_name} </h1>
+            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", padding: "10px"}}>
+                <div style={{ display: "flex", flexDirection: "row"}}>
+                    <h1 key={section.section_name} style={{ fontSize: "1.3em", fontWeight: "bold", marginRight: "10px" }} > {section.section_name} </h1>
 
-                <div style={{ border: "1px solid black", padding: "5px", borderRadius: "5px" }}>
-                    {sectionContent.length}
+                    <div className='bordered'>{sectionContent.length}</div>
                 </div>
+                <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "80px" }}>
 
-                <div style={{ display: "flex", flexDirection: "row" }}>
-                    <div style={{ border: "1px solid black", padding: "5px", marginRight: "5px", borderRadius: "5px" }}>
-                        <button onClick={() => {
-                            dispatch!({ type: "add-empty-item", section: section.section_name })
-                        }}> + </button>
-                    </div>
-                    <div style={{ border: "1px solid black", padding: "5px", marginRight: "5px", borderRadius: "5px" }}>
-                        {
-                            showAll ?
-                                <button onClick={() => setShowAll(false)}> x </button> :
-                                <button onClick={() => setShowAll(true)}> ↓ </button>
-                        }
-                    </div>
+                    <button className='bordered' onClick={() => {
+                        dispatch!({ type: "add-empty-item", section: section.section_name })
+                    }}> + </button>
+                    <button className='bordered' onClick={toggleShowAll}> {showAll ? "✗" : "≡"} </button>
+
                 </div>
             </div>
             {
