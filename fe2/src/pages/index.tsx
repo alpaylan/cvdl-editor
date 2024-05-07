@@ -23,6 +23,7 @@ import Section from '@/components/Section';
 import { render as domRender } from '@/logic/DomLayout';
 import Layout from '@/components/layout';
 import LayoutEditor from '@/components/LayoutEditor';
+import DataSchemaEditor from '@/components/DataSchemaEditor';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -191,7 +192,7 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
   if (action.type === "add-layout") {
     return newState;
   }
-  
+
   return newState;
 }
 
@@ -401,6 +402,9 @@ function App() {
               </div>}
             {currentTab === "layout-editor" &&
               <LayoutEditor />
+            }
+            {currentTab === "schema-editor" &&
+              <DataSchemaEditor />
             }
             <div style={{ display: "flex", flexDirection: "column", margin: "20px" }}>
               <div style={{ display: "flex", flexDirection: "row", marginBottom: "5px" }}>
