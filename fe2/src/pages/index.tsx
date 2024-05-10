@@ -389,7 +389,7 @@ function App() {
             </div>
 
             {currentTab === "content-editor" &&
-              <div style={{ display: "flex", flexDirection: "column", width: "50%", margin: "20px" }}>
+              <div style={{ display: "flex", flexDirection: "column", width: "50%", margin: "20px", maxHeight: "95vh", overflow: "scroll" }}>
                 <h1>Content Editor</h1>
                 {(layoutSchemas && dataSchemas) && <AddNewSection layoutSchemas={layoutSchemas!} dataSchemas={dataSchemas!} />}
                 {(resumeData && layoutSchemas) &&
@@ -406,7 +406,7 @@ function App() {
             {currentTab === "schema-editor" &&
               <DataSchemaEditor />
             }
-            <div style={{ display: "flex", flexDirection: "column", margin: "20px" }}>
+            <div style={{ display: "flex", flexDirection: "column", margin: "20px",minWidth: "640px", maxHeight: "95vh", overflow: "scroll"  }}>
               <div style={{ display: "flex", flexDirection: "row", marginBottom: "5px" }}>
                 <button className='bordered' onClick={downloadResume} >⤓ Download</button>
                 <button className='bordered' onClick={() => setDebug(!debug)}>&#x1F41E; Debug</button>
