@@ -4,8 +4,9 @@ import { ItemContent, ResumeSection } from 'cvdl-ts/dist/Resume';
 import SectionItemField from './SectionItemField';
 import { useContext, useState } from 'react';
 import SectionItem from './SectionItem';
-import { DocumentDispatchContext } from '@/pages';
+import { DocumentDispatchContext, EditorContext } from '@/pages';
 import { LayoutSchema } from 'cvdl-ts/dist/LayoutSchema';
+import { ElementPath } from 'cvdl-ts/dist/AnyLayout';
 
 export type FieldProps = {
     name: string;
@@ -40,15 +41,24 @@ const computeSectionContent = (section: ResumeSection, dataSchema?: DataSchema):
 
 
 const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSection, dataSchemas: DataSchema[], layoutSchemas: LayoutSchema[] }) => {
-    const [showAll, setShowAll] = useState<boolean>(false);
-    const toggleShowAll = () => {
-        setShowAll(!showAll);
-    }
     const dataSchema = dataSchemas.find((schema) => schema.schema_name === section.data_schema);
     const availableLayoutSchemas = layoutSchemas.filter((schema) => schema.data_schema_name === section.data_schema);
     const sectionContent = computeSectionContent(section, dataSchema);
+    const state = useContext(EditorContext);
     const dispatch = useContext(DocumentDispatchContext);
-    console.log("Rerender")
+    const editorPath = state?.editorPath;
+    const showAll = editorPath?.tag === "item" && editorPath.section === section.section_name;
+    const toggleShowAll = () => {
+        console.error("Toggling show all")
+        console.error(showAll)
+        if (showAll) {
+            dispatch!({ type: "set-editor-path", path: { tag: "none" } as ElementPath });
+        } else {
+            console.error("Setting editor path")
+            dispatch!({ type: "set-editor-path", path: { tag: "item", section: section.section_name, item: -1 } as ElementPath });
+        }
+    }
+
     return (
         <div
             style={{

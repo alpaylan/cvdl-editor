@@ -3,7 +3,7 @@ import { DataSchema } from 'cvdl-ts/dist/DataSchema';
 import { ItemContent, ResumeSection } from 'cvdl-ts/dist/Resume';
 import SectionItemField from './SectionItemField';
 import { useContext, useState } from 'react';
-import { DocumentDispatchContext } from '@/pages';
+import { DocumentDispatchContext, EditorContext } from '@/pages';
 
 export type FieldProps = {
     name: string;
@@ -52,12 +52,21 @@ const ItemHeader = ({ itemContent, showAll, section, item, moveUp, moveDown, cop
 
 
 const SectionItem = ({ section, item, itemContent }: { section: string, item: number, itemContent: ItemProps }) => {
-    const [showAll, setShowAll] = useState<boolean>(false);
     const [fields, setFields] = useState<ItemProps>(itemContent);
+    const state = useContext(EditorContext);
     const dispatch = useContext(DocumentDispatchContext);
+    const editorPath = state?.editorPath;
+    const showAll = editorPath?.tag === "item" && editorPath.section === section && editorPath.item === item;
+    
     const toggleShowAll = () => {
-        setShowAll(!showAll);
+        if (showAll) {
+            dispatch!({ type: "set-editor-path", path: { tag: "item", section: section, item: -1 } });
+        } else {
+            dispatch!({ type: "set-editor-path", path: { tag: "item", section: section, item: item } });
+        }
     }
+
+
 
     return (
         <div

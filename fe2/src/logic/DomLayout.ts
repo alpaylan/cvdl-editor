@@ -8,6 +8,8 @@ import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { RemoteStorage } from "cvdl-ts/dist/RemoteStorage";
+import { Dispatch } from "react";
+import { EditorAction } from "@/pages";
 
 export type RenderResult = {
     blob: Blob,
@@ -23,11 +25,12 @@ export type RenderProps = {
     resume_layout?: ResumeLayout,
     storage: LocalStorage,
     fontDict?: FontDict,
+    dispatch: Dispatch<EditorAction>
     debug: boolean,
 }
 
 export const render = async (
-    { resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, debug = false }: RenderProps
+    { resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, dispatch, debug = false }: RenderProps
 ) => {
     let container = document.getElementById("pdf-container")!;
     container.innerHTML = "";
@@ -61,7 +64,7 @@ export const render = async (
     }
 
 
-    
+
     let end_time = Date.now();
 
     console.info(`Loading time: ${end_time - start_time}ms`);
@@ -73,7 +76,7 @@ export const render = async (
     console.info(`Rendering time: ${end_time - start_time}ms`);
     console.log("Constructing printpdf font dictionary...");
 
-    
+
     // Add the fonts to the document(@TODO: DO NOT HARDCODE THE FONTS)
     document.fonts.add(new FontFace("Exo-Bold", "url(https://d2bnplhbawocbk.cloudfront.net/data/fonts/Exo-Bold.ttf)"));
     document.fonts.add(new FontFace("Exo-Medium", "url(https://d2bnplhbawocbk.cloudfront.net/data/fonts/Exo-Medium.ttf)"));
@@ -118,10 +121,11 @@ export const render = async (
                 );
                 console.log(element.font.full_name());
 
-                doc.appendChild(
-                    document.createElement("div")
-                ).innerText = element.item;
-                (doc.lastChild! as HTMLDivElement).style.cssText = `
+                const elem = document.createElement("div");
+                doc.appendChild(elem);
+
+                elem.innerText = element.item;
+                elem.style.cssText = `
                     position: absolute;
                     left: ${box_.top_left.x}px;
                     top: ${box_.top_left.y}px;
@@ -131,9 +135,19 @@ export const render = async (
                     font-weight: ${element.font.weight};
                     ${debug ? "outline: 1px solid black;" : ""}
                 `;
-                (doc.lastChild! as HTMLDivElement).addEventListener("click", () => {
-                    console.error(element.item);
+                elem.addEventListener("click", () => {
+                    dispatch({ type: 'set-editor-path', path: box.path ?? { tag: 'none' } })
                 });
+                elem.addEventListener("mouseover", () => {
+                    elem.style.backgroundColor = "lightgray";
+                    elem.style.cursor = "pointer";
+                });
+
+                elem.addEventListener("mouseout", () => {
+                    elem.style.backgroundColor = "white";
+                    elem.style.animation = "none";
+                });
+
             }
         });
     }

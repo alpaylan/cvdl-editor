@@ -1,8 +1,7 @@
 
 import { FieldProps } from '@/components/SectionItem';
 import { useContext, useReducer } from 'react';
-import { DocumentContext, DocumentDispatchContext } from '@/pages/index';
-import { ItemContent } from 'cvdl-ts/dist/Resume';
+import { DocumentDispatchContext } from '@/pages/index';
 
 function debounce<T extends Function>(cb: T, wait = 200) {
     let h = 0;

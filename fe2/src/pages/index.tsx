@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useReducer, useRef, useState } fr
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-import { FontDict } from 'cvdl-ts/dist/AnyLayout';
+import { ElementPath, FontDict } from 'cvdl-ts/dist/AnyLayout';
 import { render as pdfRender } from 'cvdl-ts/dist/PdfLayout';
 import { RemoteStorage } from 'cvdl-ts/dist/RemoteStorage';
 import { LocalStorage } from 'cvdl-ts/dist/LocalStorage';
@@ -28,8 +28,16 @@ import DataSchemaEditor from '@/components/DataSchemaEditor';
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 
+
+type EditorState = {
+  resume: Resume,
+  editorPath: ElementPath
+};
+
+export const EditorContext = createContext<EditorState | null>(null);
+
 // Create a global storage for ResumeData
-export const DocumentContext = createContext<Resume | null>(null);
+// export const DocumentContext = createContext<Resume | null>(null);
 export const DocumentDispatchContext = createContext<React.Dispatch<any> | null>(null);
 
 // Create a dispatch function that changes the contents of a field in the ResumeData
@@ -79,16 +87,30 @@ type DocumentAction = {
   layout: LayoutSchema
 };
 
-export const DocumentReducer = (state: Resume, action: DocumentAction) => {
-  console.log(action);
-  const newState = Resume.fromJson(state.toJson());
+export type ContentEditorAction = {
+  type: "set-editor-path",
+  path: ElementPath
+}
+
+export type EditorAction = DocumentAction | ContentEditorAction;
+
+
+
+export const DocumentReducer = (state: EditorState, action: EditorAction) => {
+  const resume = state.resume;
+
+  const newState = Resume.fromJson(resume.toJson());
 
   if (action.type === "load") {
-    return action.value;
+    return { resume: action.value, editorPath: state.editorPath};
+  }
+
+  if (action.type === 'set-editor-path') {
+    return { resume: state.resume, editorPath: action.path };
   }
 
   if (action.type === "field-update") {
-    newState.sections = state.sections.map((section) => {
+    newState.sections = resume.sections.map((section) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
         const item = newSection.items[action.item];
@@ -96,15 +118,10 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
       }
       return newSection;
     });
-    return newState;
-  }
-
-  if (action.type === "layout-update") {
-    return newState;
   }
 
   if (action.type === "delete-item") {
-    newState.sections = state.sections.map((section) => {
+    newState.sections = resume.sections.map((section) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
         newSection.items = section.items.filter((item, index) => index !== action.item);
@@ -114,7 +131,7 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
   }
 
   if (action.type === "copy-item") {
-    newState.sections = state.sections.map((section) => {
+    newState.sections = resume.sections.map((section) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
         newSection.items.push(section.items[action.item]);
@@ -124,7 +141,7 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
   }
 
   if (action.type === "move-item") {
-    newState.sections = state.sections.map((section) => {
+    newState.sections = resume.sections.map((section) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
         const item = newSection.items[action.item];
@@ -149,7 +166,7 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
   }
 
   if (action.type === "add-empty-item") {
-    newState.sections = state.sections.map((section) => {
+    newState.sections = resume.sections.map((section) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
         const storage = new LocalStorage();
@@ -180,7 +197,7 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
   }
 
   if (action.type === "section-layout-update") {
-    newState.sections = state.sections.map((section) => {
+    newState.sections = resume.sections.map((section) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section_name) {
         newSection.layout_schema = action.layout_schema_name;
@@ -189,11 +206,7 @@ export const DocumentReducer = (state: Resume, action: DocumentAction) => {
     });
   }
 
-  if (action.type === "add-layout") {
-    return newState;
-  }
-
-  return newState;
+  return { resume: newState, editorPath: state.editorPath };
 }
 
 const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: LayoutSchema[] }) => {
@@ -264,7 +277,8 @@ function App() {
   console.warn = () => { };
   console.info = () => { };
 
-  const [resumeData, dispatch] = useReducer(DocumentReducer, new Resume("SingleColumnSchema", []));
+  const [state, dispatch] = useReducer(DocumentReducer, { resume: new Resume("SingleColumnSchema", []), editorPath: { tag: 'none' } });
+
   const [storage, setStorage] = useState<LocalStorage>(new LocalStorage());
   const [resume, setResume] = useState<string>("resume5");
   // const [resumeData, setResumeData] = useState<Resume | null>(state)
@@ -289,6 +303,7 @@ function App() {
     }
     const data = storage.load_resume(resume);
     dispatch({ type: "load", value: data });
+    
 
   }, [resume, storage, storageInitiated]);
 
@@ -307,17 +322,17 @@ function App() {
     }
 
     const resume_layout_loader = async () => {
-      if (!resumeData) {
+      if (!state.resume) {
         throw "No resume layout";
       }
-      return await storage.load_resume_layout(resumeData.resume_layout());
+      return await storage.load_resume_layout(state.resume.resume_layout());
     }
 
     setDataSchemas(data_schema_loader())
     setLayoutSchemas(layout_schema_loader())
     resume_layout_loader().then((layout) => setResumeLayout(layout))
 
-  }, [resumeData, storage, storageInitiated]);
+  }, [state.resume, storage, storageInitiated]);
 
 
 
@@ -328,24 +343,25 @@ function App() {
 
     domRender({
       resume_name: resume,
-      resume: resumeData!,
+      resume: state.resume!,
       storage,
       fontDict,
+      dispatch,
       debug
     });
-  }, [resume, fontDict, debug, storage, resumeData]);
+  }, [resume, fontDict, debug, storage, state.resume]);
 
   const saveResume = () => {
-    if (!resumeData) {
+    if (!state.resume) {
       return;
     }
-    storage.save_resume("resume5", resumeData);
+    storage.save_resume("resume5", state.resume);
   }
 
   const downloadResume = () => {
     pdfRender({
       resume_name: resume,
-      resume: resumeData!,
+      resume: state.resume!,
       storage,
       fontDict,
       debug
@@ -369,7 +385,7 @@ function App() {
   });
 
   return (
-    <DocumentContext.Provider value={resumeData}>
+    <EditorContext.Provider value={state}>
       <DocumentDispatchContext.Provider value={dispatch}>
         <Layout>
           <div style={{ display: "flex", flexDirection: "row" }}>
@@ -392,8 +408,8 @@ function App() {
               <div style={{ display: "flex", flexDirection: "column", width: "50%", margin: "20px", minWidth: "250px", maxHeight: "95vh", overflow: "scroll" }}>
                 <h1>Content Editor</h1>
                 {(layoutSchemas && dataSchemas) && <AddNewSection layoutSchemas={layoutSchemas!} dataSchemas={dataSchemas!} />}
-                {(resumeData && layoutSchemas) &&
-                  resumeData.sections.map((section, index) => {
+                {(state.resume && layoutSchemas) &&
+                  state.resume.sections.map((section, index) => {
                     return (
                       <Section key={index} section={section} dataSchemas={dataSchemas!} layoutSchemas={layoutSchemas!} />
                     )
@@ -416,7 +432,7 @@ function App() {
           </div>
         </Layout>
       </DocumentDispatchContext.Provider>
-    </DocumentContext.Provider>
+    </EditorContext.Provider>
   );
 }
 

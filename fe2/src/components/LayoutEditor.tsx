@@ -1,14 +1,12 @@
 "use client";
-import { DocumentContext, DocumentDispatchContext } from "@/pages";
-import { assert } from "console";
+import { EditorContext, DocumentDispatchContext } from "@/pages";
 import { Alignment } from "cvdl-ts/dist/Alignment";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { FontStyle, FontWeight } from "cvdl-ts/dist/Font";
 import { Elem, Row, SectionLayout, Stack } from "cvdl-ts/dist/Layout";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
-import { Width } from "cvdl-ts/dist/Width";
-import { useContext, useEffect, useReducer, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 
 type LensStep = {
@@ -538,7 +536,8 @@ const AddNewLayout = (props: { copy: boolean, dataSchemas: DataSchema[], layoutS
 
 
 const LayoutEditor = () => {
-    const resumeContext = useContext(DocumentContext);
+    const editorContext = useContext(EditorContext);
+    const resumeContext = editorContext?.resume;
     const dispatch = useContext(DocumentDispatchContext);
 
     const layoutSchemaNames = resumeContext?.layout_schemas();
