@@ -89,7 +89,7 @@ const SectionItem = ({ section, item, itemContent }: { section: string, item: nu
                                                 return <></>
                                             };
                                             return (
-                                                <SectionItemField section={section} item={item} field={field} key={index} />
+                                                <SectionItemField key={index} section={section} item={item} field={field}  />
                                             )
                                         })
                                     }

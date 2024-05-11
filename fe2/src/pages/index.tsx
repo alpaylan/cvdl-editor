@@ -42,6 +42,19 @@ export const DocumentDispatchContext = createContext<React.Dispatch<any> | null>
 
 // Create a dispatch function that changes the contents of a field in the ResumeData
 
+const reId = (resume: Resume) => {
+  const newResume = Resume.fromJson(resume.toJson());
+  newResume.sections = newResume.sections.map((section) => {
+    const newSection = ResumeSection.fromJson(section.toJson());
+    newSection.items = newSection.items.map((item) => {
+      const newItem = { id: Math.random().toString(36).substring(7), fields: item.fields };
+      return newItem;
+    });
+    return newSection;
+  });
+  return newResume;
+}
+
 type DocumentAction = {
   type: "field-update"
   section: string,
@@ -99,15 +112,14 @@ export type EditorAction = DocumentAction | ContentEditorAction;
 export const DocumentReducer = (state: EditorState, action: EditorAction) => {
   const resume = state.resume;
 
-  const newState = Resume.fromJson(resume.toJson());
+  const newState = reId(resume);
 
   if (action.type === "load") {
     return { resume: action.value, editorPath: state.editorPath};
   }
 
   if (action.type === 'set-editor-path') {
-    console.error("Setting editor path", action.path);
-    return { resume: state.resume, editorPath: action.path };
+    return { resume: newState, editorPath: action.path };
   }
 
   if (action.type === "field-update") {
@@ -135,7 +147,13 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
     newState.sections = resume.sections.map((section) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
-        newSection.items.push(section.items[action.item]);
+        const id = Math.random().toString(36).substring(7);
+        const item = section.items[action.item];
+        const fields = new Map<ItemName, ItemContent>();
+        item.fields.forEach((value, key) => {
+          fields.set(key, value);
+        });
+        newSection.items.push({ id, fields });
       }
       return newSection;
     });
