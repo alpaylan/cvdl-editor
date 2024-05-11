@@ -575,7 +575,7 @@ const LayoutEditor = () => {
         dispatch!({ type: "layout-update", layout: layoutSchema });
     }
     return (
-        <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%", margin: "20px", maxHeight: "95vh", overflow: "scroll" }}>
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%", margin: "20px", minWidth: "250px", maxHeight: "95vh", overflow: "scroll" }}>
             <h1>Layout Editor</h1>
 
             {(layoutSchemas && dataSchemas) && <AddNewLayout copy={true} layoutSchemas={layoutSchemas} dataSchemas={dataSchemas} />}
