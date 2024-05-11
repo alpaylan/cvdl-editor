@@ -1,7 +1,7 @@
 
 import { FieldProps } from '@/components/SectionItem';
 import { useContext, useReducer } from 'react';
-import { DocumentDispatchContext } from '@/pages/index';
+import { DocumentDispatchContext, EditorContext } from '@/pages/index';
 
 function debounce<T extends Function>(cb: T, wait = 200) {
     let h = 0;
@@ -14,13 +14,16 @@ function debounce<T extends Function>(cb: T, wait = 200) {
 
 
 const SectionItemField = ({ section, item, field }: { section: string, item: number, field: FieldProps }) => {
+    const state = useContext(EditorContext);
     const dispatch = useContext(DocumentDispatchContext);
     const debouncedDispatch = debounce(dispatch!);
+    
     return (
         <div key={field.name} >
             <b> {field.name} </b>
             <input type="text"
                 defaultValue={field.value}
+                autoFocus={state?.editorPath?.tag === "field" && state.editorPath.section === section && state.editorPath.item === item && state.editorPath.field === field.name}
                 onChange={(e) => {
                     const value = e.target.value;
                     debouncedDispatch({ type: "field-update", section: section, item: item, field: field.name, value: { tag: "String", value: value } });

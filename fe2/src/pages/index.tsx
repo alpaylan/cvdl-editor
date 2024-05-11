@@ -106,6 +106,7 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
   }
 
   if (action.type === 'set-editor-path') {
+    console.error("Setting editor path", action.path);
     return { resume: state.resume, editorPath: action.path };
   }
 

@@ -47,15 +47,12 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
     const state = useContext(EditorContext);
     const dispatch = useContext(DocumentDispatchContext);
     const editorPath = state?.editorPath;
-    const showAll = editorPath?.tag === "item" && editorPath.section === section.section_name;
+    const showAll = (editorPath?.tag === "section" || editorPath?.tag === "item") && editorPath.section === section.section_name;
     const toggleShowAll = () => {
-        console.error("Toggling show all")
-        console.error(showAll)
         if (showAll) {
             dispatch!({ type: "set-editor-path", path: { tag: "none" } as ElementPath });
         } else {
-            console.error("Setting editor path")
-            dispatch!({ type: "set-editor-path", path: { tag: "item", section: section.section_name, item: -1 } as ElementPath });
+            dispatch!({ type: "set-editor-path", path: { tag: "section", section: section.section_name } as ElementPath });
         }
     }
 
@@ -99,7 +96,6 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
                             <select
                                 value={section.layout_schema}
                                 onChange={(e) => {
-                                    console.error("Changing layout schema")
                                     dispatch!({ type: "section-layout-update", section_name: section.section_name, layout_schema_name: e.target.value });
                                 }}
                             >

@@ -57,10 +57,9 @@ const SectionItem = ({ section, item, itemContent }: { section: string, item: nu
     const dispatch = useContext(DocumentDispatchContext);
     const editorPath = state?.editorPath;
     const showAll = editorPath?.tag === "item" && editorPath.section === section && editorPath.item === item;
-    
     const toggleShowAll = () => {
         if (showAll) {
-            dispatch!({ type: "set-editor-path", path: { tag: "item", section: section, item: -1 } });
+            dispatch!({ type: "set-editor-path", path: { tag: "section", section: section} });
         } else {
             dispatch!({ type: "set-editor-path", path: { tag: "item", section: section, item: item } });
         }
