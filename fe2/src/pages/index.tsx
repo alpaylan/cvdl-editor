@@ -241,6 +241,8 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
     });
   }
 
+  new LocalStorage().save_resume("resume5", newState);
+
   return { resume: newState, editorPath: state.editorPath };
 }
 
@@ -323,7 +325,6 @@ function App() {
   const [fontDict, setFontDict] = useState<FontDict>(new FontDict());
   const [debug, setDebug] = useState<boolean>(false);
   const [storageInitiated, setStorageInitiated] = useState<boolean>(false);
-  const [addingSection, setAddingSection] = useState<boolean>(false);
   const [currentTab, setCurrentTab] = useState<"content-editor" | "layout-editor" | "schema-editor">("content-editor");
   useEffect(() => {
     require('../registerStaticFiles.js');
@@ -356,17 +357,16 @@ function App() {
       return layoutSchemaNames.map((schema) => storage.load_layout_schema(schema));
     }
 
-    const resume_layout_loader = async () => {
+    const resume_layout_loader = () => {
       if (!state.resume) {
         throw "No resume layout";
       }
-      return await storage.load_resume_layout(state.resume.resume_layout());
+      return storage.load_resume_layout(state.resume.resume_layout());
     }
 
     setDataSchemas(data_schema_loader())
     setLayoutSchemas(layout_schema_loader())
-    resume_layout_loader().then((layout) => setResumeLayout(layout))
-
+    setResumeLayout(resume_layout_loader())
   }, [state.resume, storage, storageInitiated]);
 
 
