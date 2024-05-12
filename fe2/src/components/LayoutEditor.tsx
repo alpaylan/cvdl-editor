@@ -323,7 +323,15 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                         props.setLayout(props.layout);
                     }}>Delete</button>
                 </div>
-
+                {!elem.is_ref &&
+                    <div className="panel-item">
+                        <label>Change Text</label>
+                        <input type="text" value={elem.item} onChange={(e) => {
+                            elem.item = e.target.value;
+                            props.setLayout(props.layout)
+                        }} />
+                    </div>
+                }
             </div>
 
         </div>
@@ -626,9 +634,9 @@ const LayoutEditor = () => {
                     <>
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <div style={{ display: "flex", flexDirection: "column" }}>
-                                <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[{'attribute': 'header_layout_schema'}]} layout={layoutSchema.header_layout_schema} />
+                                <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[{ 'attribute': 'header_layout_schema' }]} layout={layoutSchema.header_layout_schema} />
                                 <div style={{ height: "5px" }}></div>
-                                <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[{'attribute': 'item_layout_schema'}]} layout={layoutSchema.item_layout_schema} />
+                                <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[{ 'attribute': 'item_layout_schema' }]} layout={layoutSchema.item_layout_schema} />
                             </div>
                             {
                                 layoutSchemaControlPanel !== null && <ControlPanel layout={layoutSchema.item_layout_schema} layoutSchema={layoutSchema} setLayout={setLayout} lens={layoutSchemaControlPanel} setLens={setLayoutSchemaControlPanel} />
