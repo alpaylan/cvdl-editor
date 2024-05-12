@@ -1,13 +1,11 @@
 // Use DOM as a backend for the CVDL layout engine.
 
 import { ElementBox, FontDict, render as anyRender } from "cvdl-ts/dist/AnyLayout";
-import { Storage } from "cvdl-ts/dist/Storage";
 import { Resume } from "cvdl-ts/dist/Resume";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
-import { RemoteStorage } from "cvdl-ts/dist/RemoteStorage";
 import { Dispatch } from "react";
 import { EditorAction } from "@/pages";
 

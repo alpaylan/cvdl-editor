@@ -24,6 +24,7 @@ import { render as domRender } from '@/logic/DomLayout';
 import Layout from '@/components/layout';
 import LayoutEditor from '@/components/LayoutEditor';
 import DataSchemaEditor from '@/components/DataSchemaEditor';
+import { convert } from '@/logic/JsonResume';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -394,6 +395,23 @@ function App() {
 
   }
 
+  const uploadResume = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files![0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = JSON.parse((e.target as any).result);
+        const resume = convert(data);
+        dispatch({ type: "load", value: resume });
+      }
+      reader.readAsText(file);
+    }
+    input.click();
+  }
+
   useEffect(() => {
     document.addEventListener("keydown", (e) => {
       if (e.key === "s" && e.ctrlKey || e.key === "s" && e.metaKey) {
@@ -443,6 +461,7 @@ function App() {
             }
             <div style={{ display: "flex", flexDirection: "column", margin: "20px", minWidth: "640px", maxHeight: "95vh", overflow: "scroll" }}>
               <div style={{ display: "flex", flexDirection: "row", marginBottom: "5px" }}>
+              <button className='bordered' onClick={uploadResume} >Import</button>
                 <button className='bordered' onClick={downloadResume} >⤓ Download</button>
                 <button className='bordered' onClick={() => setDebug(!debug)}>&#x1F41E; Debug</button>
               </div>

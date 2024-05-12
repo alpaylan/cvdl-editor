@@ -18,9 +18,10 @@ type LensStep = {
 type Lens = LensStep[];
 
 const followLens = (lens: Lens, obj: any) => {
+    console.error(lens, obj)
     return lens.reduce((acc, step) => {
         if ('attribute' in step) {
-            return acc.inner[step.attribute];
+            return acc[step.attribute];
         } else {
             return acc.inner.elements[step.index];
         }
@@ -85,21 +86,21 @@ const layoutFollowLens = (lens: LayoutVisitor, layout: SectionLayout) => {
 }
 
 
-const ControlPanel = (props: { layout: SectionLayout, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
-    const current = followLens(props.lens, props.layout);
+const ControlPanel = (props: { layout: SectionLayout, layoutSchema: LayoutSchema, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
+    const current = followLens(props.lens, props.layoutSchema);
     switch (current.inner.tag) {
         case "Row":
-            return <ContainerControlPanel current={current} layout={props.layout} setLayout={props.setLayout} lens={props.lens} setLens={props.setLens} />;
+            return <ContainerControlPanel current={current} layout={props.layout} layoutSchema={props.layoutSchema} setLayout={props.setLayout} lens={props.lens} setLens={props.setLens} />;
         case "Stack":
-            return <ContainerControlPanel current={current} layout={props.layout} setLayout={props.setLayout} lens={props.lens} setLens={props.setLens} />;
+            return <ContainerControlPanel current={current} layout={props.layout} layoutSchema={props.layoutSchema} setLayout={props.setLayout} lens={props.lens} setLens={props.setLens} />;
         case "Elem":
-            return <ElemControlPanel current={current} layout={props.layout} setLayout={props.setLayout} lens={props.lens} setLens={props.setLens} />;
+            return <ElemControlPanel current={current} layout={props.layout} layoutSchema={props.layoutSchema} setLayout={props.setLayout} lens={props.lens} setLens={props.setLens} />;
         default:
             return <p>Unknown tag</p>;
     }
 }
 
-const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionLayout, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
+const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionLayout, layoutSchema: LayoutSchema, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
     const [newElement, setNewElement] = useState<string>("");
     const container = props.current.inner as Stack | Row;
     // const randomKey = Math.random().toString(36).substring(7);
@@ -149,7 +150,7 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                 </div>
                 <div className="panel-item">
                     <button className="bordered" onClick={() => {
-                        const parent = followLens(props.lens.slice(0, -1), props.layout);
+                        const parent = followLens(props.lens.slice(0, -1), props.layoutSchema);
                         const index = (parent.inner as Row | Stack).elements.indexOf(props.current);
                         (parent.inner as Row | Stack).elements.splice(index, 1);
                         props.setLens(props.lens.slice(0, -1));
@@ -226,7 +227,7 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
 
 }
 
-const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
+const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout, layoutSchema: LayoutSchema, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
     const elem = props.current.inner as Elem;
     const [fontSize, setFontSize] = useState(elem.font.size);
     return (
@@ -315,7 +316,7 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                 </div>
                 <div className="panel-item">
                     <button className="bordered" onClick={() => {
-                        const parent = followLens(props.lens.slice(0, -1), props.layout);
+                        const parent = followLens(props.lens.slice(0, -1), props.layoutSchema);
                         const index = (parent.inner as Row | Stack).elements.indexOf(props.current);
                         (parent.inner as Row | Stack).elements.splice(index, 1);
                         props.setLens(props.lens.slice(0, -1));
@@ -398,6 +399,7 @@ const ItemEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
                 padding: "2px"
             }}
             onClick={(e) => {
+                console.error(props.lens)
                 props.setLens([...props.lens]);
                 e.stopPropagation();
             }}
@@ -560,7 +562,7 @@ const LayoutEditor = () => {
         if (layoutSchemaControlPanel === null || layoutSchema === null) {
             return;
         }
-        const current = followLens(layoutSchemaControlPanel!, layoutSchema!.item_layout_schema);
+        const current = followLens(layoutSchemaControlPanel!, layoutSchema!);
         setSelectedLayout(current);
     }, [layoutSchema, layoutSchemaControlPanel]);
     const setLayout = (sectionLayout: SectionLayout) => {
@@ -624,12 +626,12 @@ const LayoutEditor = () => {
                     <>
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <div style={{ display: "flex", flexDirection: "column" }}>
-                                <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[{ 'attribute': 'header_layout_schema' }]} layout={layoutSchema.header_layout_schema} />
+                                <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[{'attribute': 'header_layout_schema'}]} layout={layoutSchema.header_layout_schema} />
                                 <div style={{ height: "5px" }}></div>
-                                <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[]} layout={layoutSchema.item_layout_schema} />
+                                <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[{'attribute': 'item_layout_schema'}]} layout={layoutSchema.item_layout_schema} />
                             </div>
                             {
-                                layoutSchemaControlPanel !== null && <ControlPanel layout={layoutSchema.item_layout_schema} setLayout={setLayout} lens={layoutSchemaControlPanel} setLens={setLayoutSchemaControlPanel} />
+                                layoutSchemaControlPanel !== null && <ControlPanel layout={layoutSchema.item_layout_schema} layoutSchema={layoutSchema} setLayout={setLayout} lens={layoutSchemaControlPanel} setLens={setLayoutSchemaControlPanel} />
                             }
                         </div>
                     </> :
