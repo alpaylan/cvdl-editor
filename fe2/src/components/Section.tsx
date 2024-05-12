@@ -40,6 +40,20 @@ const computeSectionContent = (section: ResumeSection, dataSchema?: DataSchema):
 }
 
 
+const isHeader = (data_schema?: DataSchema) => {
+    console.error(data_schema);
+    return data_schema && data_schema.item_schema.length === 0;
+}
+
+const toFieldProp = (field: { name: string, value: string }) => {
+    return {
+        name: field.name,
+        value: field.value,
+        isActive: true
+    }
+}
+
+
 const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSection, dataSchemas: DataSchema[], layoutSchemas: LayoutSchema[] }) => {
     const dataSchema = dataSchemas.find((schema) => schema.schema_name === section.data_schema);
     const availableLayoutSchemas = layoutSchemas.filter((schema) => schema.data_schema_name === section.data_schema);
@@ -71,13 +85,12 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
                 <div style={{ display: "flex", flexDirection: "row" }}>
                     <h1 key={section.section_name} style={{ fontSize: "1.3em", fontWeight: "bold", marginRight: "10px" }} > {section.section_name} </h1>
 
-                    <div className='bordered'>{sectionContent.length}</div>
+                    {!isHeader(dataSchema) && <div className='bordered'>{sectionContent.length}</div>}
                 </div>
-                <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "80px" }}>
-
-                    <button className='bordered' onClick={() => {
+                <div style={{ display: "flex", flexDirection: "row", justifyItems: 'right', justifyContent: "space-between", width: "80px" }}>
+                    {!isHeader(dataSchema) && <button className='bordered' onClick={() => {
                         dispatch!({ type: "add-empty-item", section: section.section_name })
-                    }}> + </button>
+                    }}> + </button>}
                     <button className='bordered' onClick={toggleShowAll}> {showAll ? "✗" : "≡"} </button>
 
                 </div>
@@ -86,7 +99,7 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
 
                 showAll &&
                 <>
-                    <div style={{ display: "flex", flexDirection: "row"}}>
+                    <div style={{ display: "flex", flexDirection: "row" }}>
                         <div className="panel-item" style={{ width: 'fit-content' }}>
                             <label>Data Schema</label>
                             <span className="bordered-full">{section.data_schema}</span>
@@ -109,6 +122,13 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
                             </select>
                         </div>
                     </div>
+                    {
+                        dataSchema?.header_schema.map((field) => {
+                            return (
+                                <SectionItemField key={field.name} section={section.section_name} item={-1} field={{ name: field.name, value: ItemContent.toString(section.data.get(field.name) ?? ItemContent.None()), isActive: true }} />
+                            )
+                        })
+                    }
                     {
                         sectionContent.map((itemContent, index) => {
                             return (

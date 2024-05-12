@@ -127,8 +127,12 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
     newState.sections = resume.sections.map((section) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
-        const item = newSection.items[action.item];
-        item.fields.set(action.field, action.value);
+        if (action.item !== -1) {
+          const item = newSection.items[action.item];
+          item.fields.set(action.field, action.value);
+        } else {
+          newSection.data.set(action.field, action.value);
+        }
       }
       return newSection;
     });
