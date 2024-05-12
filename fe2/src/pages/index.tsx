@@ -93,6 +93,9 @@ type DocumentAction = {
   data_schema: string,
   layout_schema: string
 } | {
+  type: "delete-section",
+  section_name: string
+} |{
   type: "section-layout-update",
   section_name: string,
   layout_schema_name: string
@@ -218,6 +221,14 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
     newSection.section_name = action.section_name;
     newSection.layout_schema = action.layout_schema;
     newState.sections.push(newSection);
+  }
+
+  if (action.type === "delete-section") {
+    console.error(action.section_name);
+    console.error(newState.sections);
+    console.error(resume.sections.filter((section) => section.section_name !== action.section_name));
+    newState.sections = resume.sections.filter((section) => section.section_name !== action.section_name);
+    console.error(newState.sections);
   }
 
   if (action.type === "section-layout-update") {

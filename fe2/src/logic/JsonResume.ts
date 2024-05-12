@@ -698,7 +698,18 @@ export const convert = (json: JsonResume): Resume => {
         });
     });
 
-
-
-    return new Resume("SingleColumnSchema", [basics, work, volunteer, education, awards, certificates, publications, skills, languages, interests, references, projects]);
+    return new Resume("SingleColumnSchema", [
+        basics,
+        work,
+        volunteer,
+        education,
+        awards,
+        certificates,
+        publications,
+        skills,
+        languages,
+        interests,
+        references,
+        projects
+    ]);
 }

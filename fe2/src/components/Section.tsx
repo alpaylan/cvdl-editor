@@ -41,18 +41,8 @@ const computeSectionContent = (section: ResumeSection, dataSchema?: DataSchema):
 
 
 const isHeader = (data_schema?: DataSchema) => {
-    console.error(data_schema);
     return data_schema && data_schema.item_schema.length === 0;
 }
-
-const toFieldProp = (field: { name: string, value: string }) => {
-    return {
-        name: field.name,
-        value: field.value,
-        isActive: true
-    }
-}
-
 
 const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSection, dataSchemas: DataSchema[], layoutSchemas: LayoutSchema[] }) => {
     const dataSchema = dataSchemas.find((schema) => schema.schema_name === section.data_schema);
@@ -92,7 +82,10 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
                         dispatch!({ type: "add-empty-item", section: section.section_name })
                     }}> + </button>}
                     <button className='bordered' onClick={toggleShowAll}> {showAll ? "✗" : "≡"} </button>
-
+                    {section.section_name && <button className='bordered' onClick={() => {
+                        dispatch!({ type: "delete-section", section_name: section.section_name })
+                    }
+                    }> - </button>}
                 </div>
             </div>
             {
