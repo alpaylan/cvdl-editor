@@ -1,5 +1,5 @@
 "use client";
-import { EditorContext, DocumentDispatchContext } from "@/pages";
+import { EditorContext, DocumentDispatchContext } from "@/app/page";
 import { Alignment } from "cvdl-ts/dist/Alignment";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { FontStyle, FontWeight } from "cvdl-ts/dist/Font";

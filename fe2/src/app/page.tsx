@@ -1,4 +1,4 @@
-
+"use client"
 
 
 import { createContext, useContext, useEffect, useReducer, useRef, useState } from 'react';
@@ -25,6 +25,7 @@ import Layout from '@/components/layout';
 import LayoutEditor from '@/components/LayoutEditor';
 import DataSchemaEditor from '@/components/DataSchemaEditor';
 import { convert } from '@/logic/JsonResume';
+import { fetchGist } from '@/api/fetchGist';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -260,7 +261,7 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
       }
       return newSection;
     });
-  } 
+  }
 
   new LocalStorage().save_resume(resumeName, newState);
   return { resume: newState, editorPath: path, resumeName: resumeName };
@@ -329,12 +330,13 @@ const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: Layout
     </>
   )
 }
+
 function App() {
   console.log = () => { };
   console.warn = () => { };
   console.info = () => { };
 
-  const [state, dispatch] = useReducer(DocumentReducer, { resume: new Resume("SingleColumnSchema", []), editorPath: { tag: 'none' }, resumeName: "Default"});
+  const [state, dispatch] = useReducer(DocumentReducer, { resume: new Resume("SingleColumnSchema", []), editorPath: { tag: 'none' }, resumeName: "Default" });
 
   const [storage, setStorage] = useState<LocalStorage>(new LocalStorage());
   const [resume, setResume] = useState<string>("Default");
@@ -352,7 +354,20 @@ function App() {
     storage.initiate_storage().then(() => {
       setStorageInitiated(true);
     });
-  });
+
+    // Check if query parameter is present
+    if (window.location.search) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const load_resume = urlParams.get('user');
+      console.log(load_resume);
+      if (load_resume) {
+        fetchGist(load_resume).then((data) => {
+          const resume = convert(data);
+          dispatch({ type: "load", value: resume });
+        });
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!storageInitiated) {
@@ -394,7 +409,7 @@ function App() {
     setResumes(resumes);
   }, [state.resume, storage, storageInitiated]);
 
-  
+
 
 
   useEffect(() => {
@@ -482,8 +497,8 @@ function App() {
               }} onClick={() => setCurrentTab("schema-editor")}>Schema Editor</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", width: "50%", margin: "20px", minWidth: "250px", maxHeight: "95vh", overflow: "scroll" }}>
-                <div style={{ display: "flex", flexDirection: "row"}}>
-                <select value={resume} onChange={(e) => { 
+              <div style={{ display: "flex", flexDirection: "row" }}>
+                <select value={resume} onChange={(e) => {
                   setResume(e.target.value);
                   dispatch({ type: "switch-resume", resumeName: e.target.value });
                 }}>
@@ -501,9 +516,9 @@ function App() {
                   }
                 }
                 }>⊕ New Resume</button>
-                </div>
+              </div>
 
-            {currentTab === "content-editor" &&
+              {currentTab === "content-editor" &&
                 <div>
                   <h1>Content Editor</h1>
                   {(layoutSchemas && dataSchemas) && <AddNewSection layoutSchemas={layoutSchemas!} dataSchemas={dataSchemas!} />}

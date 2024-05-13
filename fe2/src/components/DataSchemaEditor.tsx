@@ -1,5 +1,5 @@
 "use client";
-import { DocumentDispatchContext, EditorContext } from "@/pages";
+import { DocumentDispatchContext, EditorContext } from "@/app/page";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { useContext, useState } from "react";

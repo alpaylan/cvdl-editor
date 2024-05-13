@@ -4,7 +4,7 @@ import { ItemContent, ResumeSection } from 'cvdl-ts/dist/Resume';
 import SectionItemField from './SectionItemField';
 import { useContext, useState } from 'react';
 import SectionItem from './SectionItem';
-import { DocumentDispatchContext, EditorContext } from '@/pages';
+import { DocumentDispatchContext, EditorContext } from '@/app/page';
 import { LayoutSchema } from 'cvdl-ts/dist/LayoutSchema';
 import { ElementPath } from 'cvdl-ts/dist/AnyLayout';
 
