@@ -2,17 +2,8 @@
 
 import { redirect } from "next/navigation";
 
-const getServersideProps = async (context) => {
-    const { username } = context.params;
-    return {
-        props: {
-            username
-        }
-    }
-}
-
-export default async function UserPage({ username }) {
-    redirect(`/?user=${username}`);
+export default async function UserPage({ params }: { params: { slug: string }}) {
+    redirect(`/?user=${params.slug}`);
 }
 
 

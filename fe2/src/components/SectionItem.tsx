@@ -3,7 +3,7 @@ import { DataSchema } from 'cvdl-ts/dist/DataSchema';
 import { ItemContent, ResumeSection } from 'cvdl-ts/dist/Resume';
 import SectionItemField from './SectionItemField';
 import { useContext, useState } from 'react';
-import { DocumentDispatchContext, EditorContext } from '@/app/page';
+import { DocumentDispatchContext, EditorContext } from "@/components/HomePage"
 
 export type FieldProps = {
     name: string;

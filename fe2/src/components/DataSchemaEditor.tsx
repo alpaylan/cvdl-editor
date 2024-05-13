@@ -1,5 +1,5 @@
 "use client";
-import { DocumentDispatchContext, EditorContext } from "@/app/page";
+import { EditorContext } from "@/components/HomePage";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { useContext, useState } from "react";
@@ -7,7 +7,6 @@ import { useContext, useState } from "react";
 const DataSchemaEditor = () => {
     const editorContext = useContext(EditorContext);
     const resumeContext = editorContext?.resume;
-    const dispatch = useContext(DocumentDispatchContext);
 
     const layoutSchemaNames = resumeContext?.layout_schemas();
     const [dataSchema, setDataSchema] = useState<DataSchema | null>(null);

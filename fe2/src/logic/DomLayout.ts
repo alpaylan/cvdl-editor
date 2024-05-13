@@ -7,7 +7,7 @@ import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { Dispatch } from "react";
-import { EditorAction } from "@/pages";
+import { EditorAction } from "@/components/HomePage";
 
 export type RenderResult = {
     blob: Blob,
