@@ -32,7 +32,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 type EditorState = {
   resume: Resume,
-  editorPath: ElementPath
+  editorPath: ElementPath,
+  resumeName: string
 };
 
 export const EditorContext = createContext<EditorState | null>(null);
@@ -95,13 +96,19 @@ type DocumentAction = {
 } | {
   type: "delete-section",
   section_name: string
-} |{
+} | {
   type: "section-layout-update",
   section_name: string,
   layout_schema_name: string
 } | {
   type: "add-layout",
   layout: LayoutSchema
+} | {
+  type: "create-new-resume",
+  resumeName: string
+} | {
+  type: "switch-resume",
+  resumeName: string
 };
 
 export type ContentEditorAction = {
@@ -116,14 +123,28 @@ export type EditorAction = DocumentAction | ContentEditorAction;
 export const DocumentReducer = (state: EditorState, action: EditorAction) => {
   const resume = state.resume;
 
-  const newState = reId(resume);
-
-  if (action.type === "load") {
-    return { resume: action.value, editorPath: state.editorPath};
-  }
+  let newState = reId(resume);
+  let path = state.editorPath;
+  let resumeName = state.resumeName;
 
   if (action.type === 'set-editor-path') {
-    return { resume: newState, editorPath: action.path };
+    path = action.path;
+  }
+
+  if (action.type === "load") {
+    newState = action.value;
+  }
+
+  if (action.type === "create-new-resume") {
+    newState = new Resume("SingleColumnSchema", []);
+    path = { tag: 'none' };
+    resumeName = action.resumeName;
+  }
+
+  if (action.type === "switch-resume") {
+    resumeName = action.resumeName;
+    path = { tag: 'none' };
+    newState = new LocalStorage().load_resume(action.resumeName);
   }
 
   if (action.type === "field-update") {
@@ -239,11 +260,10 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
       }
       return newSection;
     });
-  }
+  } 
 
-  new LocalStorage().save_resume("resume5", newState);
-
-  return { resume: newState, editorPath: state.editorPath };
+  new LocalStorage().save_resume(resumeName, newState);
+  return { resume: newState, editorPath: path, resumeName: resumeName };
 }
 
 const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: LayoutSchema[] }) => {
@@ -314,10 +334,11 @@ function App() {
   console.warn = () => { };
   console.info = () => { };
 
-  const [state, dispatch] = useReducer(DocumentReducer, { resume: new Resume("SingleColumnSchema", []), editorPath: { tag: 'none' } });
+  const [state, dispatch] = useReducer(DocumentReducer, { resume: new Resume("SingleColumnSchema", []), editorPath: { tag: 'none' }, resumeName: "Default"});
 
   const [storage, setStorage] = useState<LocalStorage>(new LocalStorage());
-  const [resume, setResume] = useState<string>("resume5");
+  const [resume, setResume] = useState<string>("Default");
+  const [resumes, setResumes] = useState<string[] | null>(null);
   // const [resumeData, setResumeData] = useState<Resume | null>(state)
   const [layoutSchemas, setLayoutSchemas] = useState<LayoutSchema[] | null>(null)
   const [resumeLayout, setResumeLayout] = useState<ResumeLayout | null>(null)
@@ -337,9 +358,10 @@ function App() {
     if (!storageInitiated) {
       return;
     }
+
     const data = storage.load_resume(resume);
     dispatch({ type: "load", value: data });
-    
+
 
   }, [resume, storage, storageInitiated]);
 
@@ -364,11 +386,15 @@ function App() {
       return storage.load_resume_layout(state.resume.resume_layout());
     }
 
+    const resumes = storage.list_resumes();
+
     setDataSchemas(data_schema_loader())
     setLayoutSchemas(layout_schema_loader())
     setResumeLayout(resume_layout_loader())
+    setResumes(resumes);
   }, [state.resume, storage, storageInitiated]);
 
+  
 
 
   useEffect(() => {
@@ -390,7 +416,7 @@ function App() {
     if (!state.resume) {
       return;
     }
-    storage.save_resume("resume5", state.resume);
+    storage.save_resume("Default", state.resume);
   }
 
   const downloadResume = () => {
@@ -455,28 +481,50 @@ function App() {
                 color: currentTab === "schema-editor" ? "white" : "black"
               }} onClick={() => setCurrentTab("schema-editor")}>Schema Editor</button>
             </div>
+            <div style={{ display: "flex", flexDirection: "column", width: "50%", margin: "20px", minWidth: "250px", maxHeight: "95vh", overflow: "scroll" }}>
+                <div style={{ display: "flex", flexDirection: "row"}}>
+                <select value={resume} onChange={(e) => { 
+                  setResume(e.target.value);
+                  dispatch({ type: "switch-resume", resumeName: e.target.value });
+                }}>
+                  {
+                    resumes && resumes.map((resume) => {
+                      return <option key={resume} value={resume}>{resume}</option>
+                    })
+                  }
+                </select>
+                <button className='bordered' onClick={() => {
+                  const name = prompt("Enter new resume name");
+                  if (name) {
+                    setResume(name);
+                    dispatch({ type: "create-new-resume", resumeName: name });
+                  }
+                }
+                }>⊕ New Resume</button>
+                </div>
 
             {currentTab === "content-editor" &&
-              <div style={{ display: "flex", flexDirection: "column", width: "50%", margin: "20px", minWidth: "250px", maxHeight: "95vh", overflow: "scroll" }}>
-                <h1>Content Editor</h1>
-                {(layoutSchemas && dataSchemas) && <AddNewSection layoutSchemas={layoutSchemas!} dataSchemas={dataSchemas!} />}
-                {(state.resume && layoutSchemas) &&
-                  state.resume.sections.map((section, index) => {
-                    return (
-                      <Section key={index} section={section} dataSchemas={dataSchemas!} layoutSchemas={layoutSchemas!} />
-                    )
-                  })
-                }
-              </div>}
-            {currentTab === "layout-editor" &&
-              <LayoutEditor />
-            }
-            {currentTab === "schema-editor" &&
-              <DataSchemaEditor />
-            }
+                <div>
+                  <h1>Content Editor</h1>
+                  {(layoutSchemas && dataSchemas) && <AddNewSection layoutSchemas={layoutSchemas!} dataSchemas={dataSchemas!} />}
+                  {(state.resume && layoutSchemas) &&
+                    state.resume.sections.map((section, index) => {
+                      return (
+                        <Section key={index} section={section} dataSchemas={dataSchemas!} layoutSchemas={layoutSchemas!} />
+                      )
+                    })
+                  }
+                </div>}
+              {currentTab === "layout-editor" &&
+                <LayoutEditor />
+              }
+              {currentTab === "schema-editor" &&
+                <DataSchemaEditor />
+              }
+            </div>
             <div style={{ display: "flex", flexDirection: "column", margin: "20px", minWidth: "640px", maxHeight: "95vh", overflow: "scroll" }}>
               <div style={{ display: "flex", flexDirection: "row", marginBottom: "5px" }}>
-              <button className='bordered' onClick={uploadResume} >Import</button>
+                <button className='bordered' onClick={uploadResume} >Import</button>
                 <button className='bordered' onClick={downloadResume} >⤓ Download</button>
                 <button className='bordered' onClick={() => setDebug(!debug)}>&#x1F41E; Debug</button>
               </div>

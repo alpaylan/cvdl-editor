@@ -15,7 +15,7 @@ const DataSchemaEditor = () => {
     const dataSchemas = storage.list_data_schemas().map((name) => storage.load_data_schema(name));
     const dataSchemaNames = dataSchemas.map((schema) => schema.schema_name);
     return (
-        <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%", margin: "20px", minWidth: "250px", maxHeight: "95vh", overflow: "scroll"  }}>
+        <div>
             <h1>Layout Editor</h1>
 
             <div style={{ display: "flex", flexDirection: "row" }}>
