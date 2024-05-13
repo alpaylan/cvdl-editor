@@ -591,7 +591,7 @@ const LayoutEditor = () => {
             {(layoutSchemas && dataSchemas) && <AddNewLayout copy={false} layoutSchemas={layoutSchemas} dataSchemas={dataSchemas} />}
 
             <div style={{ display: "flex", flexDirection: "row" }}>
-                <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%" }}>
+                <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%", maxHeight: "300px", overflowY: "scroll" }}>
                     {
                         (layoutSchemaNames && layoutSchemaNames.length !== 0) &&
                         <h2>Currently Used Layouts</h2>
@@ -610,7 +610,7 @@ const LayoutEditor = () => {
                 </div>
 
 
-                <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%" }}>
+                <div style={{ display: "flex", flexDirection: "column", justifyContent: "left", width: "50%", maxHeight: "300px", overflowY: "scroll" }}>
                     <h2>All Available Layouts</h2>
                     {
                         allAvailableLayouts.map((name, index) => {
