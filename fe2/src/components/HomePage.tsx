@@ -171,6 +171,7 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
     path = action.path;
     if (path.tag === "section" || path.tag === "item") {
       setTimeout(() => {
+        // @ts-ignore
         document.getElementById(path.section)?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 200);
     }
