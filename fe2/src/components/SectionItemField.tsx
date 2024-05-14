@@ -1,9 +1,9 @@
 
 import { FieldProps } from '@/components/SectionItem';
-import { useContext, useReducer } from 'react';
+import { useContext, useEffect, useReducer, useRef, useState } from 'react';
 import { DocumentDispatchContext, EditorContext } from "@/components/HomePage"
 
-function debounce<T extends Function>(cb: T, wait = 200) {
+export function debounce<T extends Function>(cb: T, wait = 200) {
     let h = 0;
     let callable = (...args: any) => {
         clearTimeout(h);
@@ -17,7 +17,7 @@ const SectionItemField = ({ section, item, field }: { section: string, item: num
     const state = useContext(EditorContext);
     const dispatch = useContext(DocumentDispatchContext);
     const debouncedDispatch = debounce(dispatch!);
-    
+
     return (
         <div key={field.name} >
             <b> {field.name} </b>

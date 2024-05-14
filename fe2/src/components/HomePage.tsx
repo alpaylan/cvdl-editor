@@ -10,7 +10,7 @@ import { render as pdfRender } from 'cvdl-ts/dist/PdfLayout';
 import { RemoteStorage } from 'cvdl-ts/dist/RemoteStorage';
 import { LocalStorage } from 'cvdl-ts/dist/LocalStorage';
 import { Storage } from 'cvdl-ts/dist/Storage';
-import { ItemContent, ItemName, Resume, ResumeSection } from 'cvdl-ts/dist/Resume';
+import { Item, ItemContent, ItemName, Resume, ResumeSection } from 'cvdl-ts/dist/Resume';
 import { LayoutSchema } from 'cvdl-ts/dist/LayoutSchema';
 import { ResumeLayout } from 'cvdl-ts/dist/ResumeLayout';
 import { DataSchema } from 'cvdl-ts/dist/DataSchema';
@@ -26,6 +26,7 @@ import LayoutEditor from '@/components/LayoutEditor';
 import DataSchemaEditor from '@/components/DataSchemaEditor';
 import { convert } from '@/logic/JsonResume';
 import { fetchGist } from '@/api/fetchGist';
+import { debounce } from './SectionItemField';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -34,7 +35,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 type EditorState = {
   resume: Resume,
   editorPath: ElementPath,
-  resumeName: string
+  resumeName: string,
+  editHistory: DocumentAction[]
 };
 
 export const EditorContext = createContext<EditorState | null>(null);
@@ -87,7 +89,13 @@ type DocumentAction = {
   item: number,
   direction: "up" | "down"
 } | {
+  type: "add-item",
+  section: string
+  item: Item
+  index?: number
+} | {
   type: "add-section",
+  index?: number,
   section: ResumeSection
 } | {
   type: "add-empty-section",
@@ -110,6 +118,8 @@ type DocumentAction = {
 } | {
   type: "switch-resume",
   resumeName: string
+} | {
+  type: "undo"
 };
 
 export type ContentEditorAction = {
@@ -119,14 +129,29 @@ export type ContentEditorAction = {
 
 export type EditorAction = DocumentAction | ContentEditorAction;
 
+const cloneEditorHistory = (history: DocumentAction[]) => {
+  return history.map((action) => {
+    return { ...action };
+  });
+}
 
 
-export const DocumentReducer = (state: EditorState, action: EditorAction) => {
+export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
   const resume = state.resume;
 
   let newState = reId(resume);
   let path = state.editorPath;
   let resumeName = state.resumeName;
+  let editHistory = cloneEditorHistory(state.editHistory) as DocumentAction[];
+  let undoing = false;
+
+  if (action_.type === "undo" && editHistory.length > 0) {
+    let lastAction = editHistory.pop();
+    action_ = (lastAction!) as EditorAction;
+    undoing = true;
+  }
+  // Learn why this is needed.
+  const action = action_ as EditorAction;
 
   if (action.type === 'set-editor-path') {
     path = action.path;
@@ -154,8 +179,14 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
       if (section.section_name === action.section) {
         if (action.item !== -1) {
           const item = newSection.items[action.item];
+          if (!undoing) {
+            editHistory.push({ type: "field-update", section: section.section_name, item: action.item, field: action.field, value: item.fields.get(action.field)! });
+          }
           item.fields.set(action.field, action.value);
         } else {
+          if (!undoing) {
+            editHistory.push({ type: "field-update", section: section.section_name, item: action.item, field: action.field, value: newSection.data.get(action.field)! });
+          }
           newSection.data.set(action.field, action.value);
         }
       }
@@ -168,6 +199,27 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
         newSection.items = section.items.filter((item, index) => index !== action.item);
+        if (!undoing) {
+          console.error(section.items[action.item]);
+          editHistory.push({ type: "add-item", section: section.section_name, item: section.items[action.item], index: action.item });
+        }
+      }
+      return newSection;
+    });
+  }
+
+  if (action.type === "add-item") {
+    newState.sections = resume.sections.map((section) => {
+      const newSection = ResumeSection.fromJson(section.toJson());
+      if (section.section_name === action.section) {
+        if (action.index === undefined) {
+          newSection.items.push(action.item);
+        } else {
+          newSection.items.splice(action.index, 0, action.item);
+        }
+        if (!undoing) {
+          editHistory.push({ type: "delete-item", section: section.section_name, item: newSection.items.length - 1 });
+        }
       }
       return newSection;
     });
@@ -184,6 +236,9 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
           fields.set(key, value);
         });
         newSection.items.push({ id, fields });
+        if (!undoing) {
+          editHistory.push({ type: "delete-item", section: section.section_name, item: newSection.items.length - 1 });
+        }
       }
       return newSection;
     });
@@ -193,21 +248,22 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
     newState.sections = resume.sections.map((section) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section) {
+
+        if ((action.item < 0 && action.direction === "up") ||
+          (action.item >= newSection.items.length && action.direction === "down")) {
+          return newSection;
+        }
+
+        const swapPosition = action.direction === "up" ? action.item - 1 : action.item + 1;
+
         const item = newSection.items[action.item];
-        if (action.direction === "up") {
-          if (action.item === 0) {
-            return newSection;
-          }
-          const temp = newSection.items[action.item - 1];
-          newSection.items[action.item - 1] = item;
-          newSection.items[action.item] = temp;
-        } else {
-          if (action.item === newSection.items.length - 1) {
-            return newSection;
-          }
-          const temp = newSection.items[action.item + 1];
-          newSection.items[action.item + 1] = item;
-          newSection.items[action.item] = temp;
+
+        const temp = newSection.items[swapPosition];
+        newSection.items[swapPosition] = item;
+        newSection.items[action.item] = temp;
+
+        if (!undoing) {
+          editHistory.push({ type: "move-item", section: section.section_name, item: swapPosition, direction: action.direction === "up" ? "down" : "up" });
         }
       }
       return newSection;
@@ -226,13 +282,24 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
         });
         const id = Math.random().toString(36).substring(7);
         newSection.items.push({ id, fields: item });
+        if (!undoing) {
+          editHistory.push({ type: "delete-item", section: section.section_name, item: newSection.items.length - 1 });
+        }
       }
       return newSection;
     });
   }
 
   if (action.type === "add-section") {
-    newState.sections.push(action.section);
+    if (action.index === undefined) {
+      newState.sections.push(action.section);
+    } else {
+      newState.sections.splice(action.index, 0, action.section);
+    }
+
+    if (!undoing) {
+      editHistory.push({ type: "delete-section", section_name: action.section.section_name });
+    }
   }
 
   if (action.type === "add-empty-section") {
@@ -243,14 +310,20 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
     newSection.section_name = action.section_name;
     newSection.layout_schema = action.layout_schema;
     newState.sections.push(newSection);
+    if (!undoing) {
+      editHistory.push({ type: "delete-section", section_name: action.section_name });
+    }
   }
 
   if (action.type === "delete-section") {
-    console.error(action.section_name);
-    console.error(newState.sections);
-    console.error(resume.sections.filter((section) => section.section_name !== action.section_name));
     newState.sections = resume.sections.filter((section) => section.section_name !== action.section_name);
-    console.error(newState.sections);
+    if (!undoing) {
+      editHistory.push({
+        type: "add-section",
+        index: resume.sections.findIndex((section) => section.section_name === action.section_name),
+        section: resume.sections.find((section) => section.section_name === action.section_name)!
+      });
+    }
   }
 
   if (action.type === "section-layout-update") {
@@ -258,13 +331,16 @@ export const DocumentReducer = (state: EditorState, action: EditorAction) => {
       const newSection = ResumeSection.fromJson(section.toJson());
       if (section.section_name === action.section_name) {
         newSection.layout_schema = action.layout_schema_name;
+        if (!undoing) {
+          editHistory.push({ type: "section-layout-update", section_name: action.section_name, layout_schema_name: section.layout_schema });
+        }
       }
       return newSection;
     });
   }
 
   new LocalStorage().save_resume(resumeName, newState);
-  return { resume: newState, editorPath: path, resumeName: resumeName };
+  return { resume: newState, editorPath: path, resumeName: resumeName, editHistory: editHistory };
 }
 
 const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: LayoutSchema[] }) => {
@@ -336,7 +412,7 @@ function App() {
   console.warn = () => { };
   console.info = () => { };
 
-  const [state, dispatch] = useReducer(DocumentReducer, { resume: new Resume("SingleColumnSchema", []), editorPath: { tag: 'none' }, resumeName: "Default" });
+  const [state, dispatch] = useReducer(DocumentReducer, { resume: new Resume("SingleColumnSchema", []), editorPath: { tag: 'none' }, resumeName: "Default", editHistory: [] });
 
   const [storage, setStorage] = useState<LocalStorage>(new LocalStorage());
   const [resume, setResume] = useState<string>("Default");
@@ -349,6 +425,7 @@ function App() {
   const [debug, setDebug] = useState<boolean>(false);
   const [storageInitiated, setStorageInitiated] = useState<boolean>(false);
   const [currentTab, setCurrentTab] = useState<"content-editor" | "layout-editor" | "schema-editor">("content-editor");
+  const [keyPressing, setKeyPressing] = useState<boolean>(false);
   useEffect(() => {
     require('../registerStaticFiles.js');
     storage.initiate_storage().then(() => {
@@ -468,13 +545,23 @@ function App() {
     input.click();
   }
 
+
   useEffect(() => {
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "s" && e.ctrlKey || e.key === "s" && e.metaKey) {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "z" && e.ctrlKey || e.key === "z" && e.metaKey) {
+        if (e.repeat) {
+          return
+        }
         e.preventDefault();
-        saveResume();
+        dispatch({ type: "undo" });
       }
-    });
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    }
   });
 
   return (
