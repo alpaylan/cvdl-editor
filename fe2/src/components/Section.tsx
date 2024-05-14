@@ -70,6 +70,8 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
                 padding: "10px",
                 marginBottom: "10px"
             }}
+            className={showAll ? "" : "clickable"}
+            onClick={showAll ? undefined : toggleShowAll}
         >
             <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", padding: "10px" }}>
                 <div style={{ display: "flex", flexDirection: "row" }}>
@@ -81,7 +83,7 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
                     {!isHeader(dataSchema) && <button className='bordered' onClick={() => {
                         dispatch!({ type: "add-empty-item", section: section.section_name })
                     }}> + </button>}
-                    <button className='bordered' onClick={toggleShowAll}> {showAll ? "✗" : "≡"} </button>
+                    {showAll && <button className='bordered' onClick={toggleShowAll}> ✗ </button>}
                     {section.section_name && <button className='bordered' onClick={() => {
                         dispatch!({ type: "delete-section", section_name: section.section_name })
                     }

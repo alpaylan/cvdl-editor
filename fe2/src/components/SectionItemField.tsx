@@ -19,7 +19,7 @@ const SectionItemField = ({ section, item, field }: { section: string, item: num
     const debouncedDispatch = debounce(dispatch!);
 
     return (
-        <div key={field.name} >
+        <div key={field.name} style={{ display: "flex", flexDirection: "column"}} >
             <b> {field.name} </b>
             <input type="text"
                 defaultValue={field.value}

@@ -1,6 +1,3 @@
-
-import { DataSchema } from 'cvdl-ts/dist/DataSchema';
-import { ItemContent, ResumeSection } from 'cvdl-ts/dist/Resume';
 import SectionItemField from './SectionItemField';
 import { useContext, useState } from 'react';
 import { DocumentDispatchContext, EditorContext } from "@/components/HomePage"
@@ -82,7 +79,7 @@ const SectionItem = ({ section, item, itemContent }: { section: string, item: nu
                     (
                         <>
                             <div style={{ display: "flex", flexDirection: "row" }}>
-                                <div style={{ display: "flex", flexDirection: "column" }}>
+                                <div style={{ display: "flex", flexDirection: "column", width: "80%" }}>
                                     {
                                         fields.map((field, index) => {
                                             if (!field.isActive) {
@@ -93,23 +90,15 @@ const SectionItem = ({ section, item, itemContent }: { section: string, item: nu
                                             )
                                         })
                                     }
-                                    <div style={{ display: "flex", flexDirection: "row", marginTop: "5px" }}>
+                                    <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", marginTop: "5px" }}>
                                         {
                                             fields.filter((ic) => !ic.isActive).map((field, index) => {
                                                 return (
                                                     <div key={index} >
-                                                        <button style={{
-                                                            display: "inline",
-                                                            whiteSpace: "pre-wrap",
-                                                            border: "1px solid black",
-                                                            borderRadius: "12px",
-                                                            paddingRight: "5px",
-                                                            paddingLeft: "5px",
-                                                            marginRight: "5px"
-                                                        }}
+                                                        <button className='bordered'
                                                             onClick={() => { field.isActive = true; setFields([...fields]) }}
                                                         >
-                                                            {field.name}{' '}+
+                                                            ⊕ {field.name}
                                                         </button>
                                                     </div>
                                                 )

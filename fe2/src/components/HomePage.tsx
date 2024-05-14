@@ -425,12 +425,17 @@ function App() {
   const [debug, setDebug] = useState<boolean>(false);
   const [storageInitiated, setStorageInitiated] = useState<boolean>(false);
   const [currentTab, setCurrentTab] = useState<"content-editor" | "layout-editor" | "schema-editor">("content-editor");
-  const [keyPressing, setKeyPressing] = useState<boolean>(false);
+
   useEffect(() => {
     require('../registerStaticFiles.js');
     storage.initiate_storage().then(() => {
       setStorageInitiated(true);
     });
+
+    if (localStorage.getItem("version") !== "0.1.0") {
+      localStorage.clear();
+      localStorage.setItem("version", "0.1.0");
+    }
 
     // Check if query parameter is present
     if (window.location.search) {
