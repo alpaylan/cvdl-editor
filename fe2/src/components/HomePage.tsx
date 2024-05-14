@@ -32,7 +32,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 
 
-type EditorState = {
+export type EditorState = {
   resume: Resume,
   editorPath: ElementPath,
   resumeName: string,
@@ -59,6 +59,20 @@ const reId = (resume: Resume) => {
   });
   return newResume;
 }
+
+const deepCopyResume = (resume: Resume) => {
+  const newResume = Resume.fromJson(resume.toJson());
+  newResume.sections = newResume.sections.map((section) => {
+    const newSection = ResumeSection.fromJson(section.toJson());
+    newSection.items = newSection.items.map((item) => {
+      const newItem = { id: item.id, fields: item.fields };
+      return newItem;
+    });
+    return newSection;
+  });
+  return newResume;
+}
+
 
 type DocumentAction = {
   type: "field-update"
@@ -138,7 +152,7 @@ const cloneEditorHistory = (history: DocumentAction[]) => {
 
 export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
   const resume = state.resume;
-
+  console.error(action_);
   let newState = reId(resume);
   let path = state.editorPath;
   let resumeName = state.resumeName;
@@ -155,6 +169,11 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 
   if (action.type === 'set-editor-path') {
     path = action.path;
+    if (path.tag === "section" || path.tag === "item") {
+      setTimeout(() => {
+        document.getElementById(path.section)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    }
   }
 
   if (action.type === "load") {
@@ -214,9 +233,14 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
       if (section.section_name === action.section) {
         if (action.index === undefined) {
           newSection.items.push(action.item);
+          path = { tag: 'item', section: section.section_name, item: newSection.items.length - 1 };
         } else {
           newSection.items.splice(action.index, 0, action.item);
+          path = { tag: 'item', section: section.section_name, item: action.index };
         }
+
+        console.error(action.item);
+        document.getElementById(action.item.id)?.scrollIntoView();
         if (!undoing) {
           editHistory.push({ type: "delete-item", section: section.section_name, item: newSection.items.length - 1 });
         }
@@ -282,6 +306,10 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
         });
         const id = Math.random().toString(36).substring(7);
         newSection.items.push({ id, fields: item });
+        path = { tag: 'item', section: section.section_name, item: newSection.items.length - 1 };
+        setTimeout(() => {
+          document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 200);
         if (!undoing) {
           editHistory.push({ type: "delete-item", section: section.section_name, item: newSection.items.length - 1 });
         }
@@ -504,6 +532,7 @@ function App() {
       resume: state.resume!,
       storage,
       fontDict,
+      state,
       dispatch,
       debug
     });

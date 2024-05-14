@@ -56,16 +56,15 @@ const SectionItem = ({ section, item, itemContent }: { section: string, item: nu
     const showAll = editorPath?.tag === "item" && editorPath.section === section && editorPath.item === item;
     const toggleShowAll = () => {
         if (showAll) {
-            dispatch!({ type: "set-editor-path", path: { tag: "section", section: section} });
+            dispatch!({ type: "set-editor-path", path: { tag: "section", section: section } });
         } else {
             dispatch!({ type: "set-editor-path", path: { tag: "item", section: section, item: item } });
         }
     }
 
-
-
     return (
         <div
+            id={state?.resume.sections.find((s) => s.section_name === section)?.items[item].id ?? undefined}
             className={`bordered-full ${!showAll ? 'clickable' : ''}`}
             style={{
                 display: "flex",
@@ -86,7 +85,7 @@ const SectionItem = ({ section, item, itemContent }: { section: string, item: nu
                                                 return <></>
                                             };
                                             return (
-                                                <SectionItemField key={index} section={section} item={item} field={field}  />
+                                                <SectionItemField key={index} section={section} item={item} field={field} />
                                             )
                                         })
                                     }

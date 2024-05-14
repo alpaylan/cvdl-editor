@@ -7,7 +7,7 @@ import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { Dispatch } from "react";
-import { EditorAction } from "@/components/HomePage";
+import { EditorAction, EditorState } from "@/components/HomePage";
 
 export type RenderResult = {
     blob: Blob,
@@ -23,12 +23,13 @@ export type RenderProps = {
     resume_layout?: ResumeLayout,
     storage: LocalStorage,
     fontDict?: FontDict,
+    state: EditorState,
     dispatch: Dispatch<EditorAction>
     debug: boolean,
 }
 
 export const render = async (
-    { resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, dispatch, debug = false }: RenderProps
+    { resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, state, dispatch, debug = false }: RenderProps
 ) => {
     let container = document.getElementById("pdf-container")!;
     container.innerHTML = "";
@@ -133,7 +134,14 @@ export const render = async (
                     font-weight: ${element.font.weight};
                     ${debug ? "outline: 1px solid black;" : ""}
                 `;
+
+                if (JSON.stringify(state.editorPath) === JSON.stringify(box.path)) {
+                    console.error("Highlighting element");
+                    elem.style.outline = "1px solid red";
+                    elem.style.zIndex = "100";
+                }
                 elem.addEventListener("click", () => {
+                    console.error("Clicked on element");
                     dispatch({ type: 'set-editor-path', path: box.path ?? { tag: 'none' } })
                 });
                 elem.addEventListener("mouseover", () => {

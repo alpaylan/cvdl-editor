@@ -62,6 +62,7 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
 
     return (
         <div
+            id={section.section_name}
             style={{
                 display: "flex",
                 flexDirection: "column",
@@ -79,21 +80,22 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
 
                     {!isHeader(dataSchema) && <div className='bordered'>{sectionContent.length}</div>}
                 </div>
-                <div style={{ display: "flex", flexDirection: "row", justifyItems: 'right', justifyContent: "space-between", width: "80px" }}>
-                    {!isHeader(dataSchema) && <button className='bordered' onClick={() => {
-                        dispatch!({ type: "add-empty-item", section: section.section_name })
-                    }}> + </button>}
-                    {showAll && <button className='bordered' onClick={toggleShowAll}> ✗ </button>}
-                    {section.section_name && <button className='bordered' onClick={() => {
-                        dispatch!({ type: "delete-section", section_name: section.section_name })
-                    }
-                    }> - </button>}
-                </div>
+                {showAll && <button className='bordered' onClick={toggleShowAll}> ✗ </button>}
             </div>
             {
 
                 showAll &&
                 <>
+
+                    <div style={{ display: "flex", flexDirection: "row" }}>
+                        {section.section_name && <button className='panel-item bordered' onClick={() => {
+                            dispatch!({ type: "delete-section", section_name: section.section_name })
+                        }
+                        }> - Delete Section </button>}
+                        {!isHeader(dataSchema) && <button className='panel-item bordered' onClick={() => {
+                            dispatch!({ type: "add-empty-item", section: section.section_name })
+                        }}> + Add New Item </button>}
+                    </div>
                     <div style={{ display: "flex", flexDirection: "row" }}>
                         <div className="panel-item" style={{ width: 'fit-content' }}>
                             <label>Data Schema</label>
