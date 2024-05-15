@@ -1,7 +1,7 @@
 
 import { FieldProps } from '@/components/SectionItem';
 import { useContext, useEffect, useReducer, useRef, useState } from 'react';
-import { DocumentDispatchContext, EditorContext } from "@/components/HomePage"
+import { DocumentDispatchContext, EditorContext } from "@/components/State"
 
 export function debounce<T extends Function>(cb: T, wait = 200) {
     let h = 0;

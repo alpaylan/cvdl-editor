@@ -1,5 +1,5 @@
 "use client";
-import { EditorContext } from "@/components/HomePage";
+import { EditorContext } from "@/components/State";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { useContext, useState } from "react";

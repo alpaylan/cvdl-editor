@@ -1,6 +1,6 @@
 import SectionItemField from './SectionItemField';
 import { useContext, useState } from 'react';
-import { DocumentDispatchContext, EditorContext } from "@/components/HomePage"
+import { DocumentDispatchContext, EditorContext } from "@/components/State"
 
 export type FieldProps = {
     name: string;
