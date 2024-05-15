@@ -25,7 +25,7 @@ import Layout from '@/components/layout';
 import LayoutEditor from '@/components/LayoutEditor';
 import DataSchemaEditor from '@/components/DataSchemaEditor';
 import { convert } from '@/logic/JsonResume';
-import { fetchGist } from '@/api/fetchGist';
+import { fetchGist, fetchGistById } from '@/api/fetchGist';
 import { debounce } from './SectionItemField';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
@@ -436,6 +436,27 @@ const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: Layout
   )
 }
 
+const GihubLogin = () => {
+  const [token, setToken] = useState<string>("")
+  const [open, setOpen] = useState<boolean>(false);
+
+  if (!open) {
+    return (
+      <button className='bordered' onClick={() => setOpen(true)}>Login with Github</button>
+    )
+  }
+
+  return (
+    <div>
+      <input type="text" value={token} placeholder="Paste your Github Token" onChange={(e) => setToken(e.target.value)} />
+      <button className='bordered' onClick={() => {
+        localStorage.setItem("github_token", token);
+        setOpen(false);
+      }}>Login</button>
+    </div>
+  )
+}
+
 function App() {
   console.log = () => { };
   console.warn = () => { };
@@ -539,11 +560,52 @@ function App() {
     });
   }, [resume, fontDict, debug, storage, state.resume]);
 
+  const saveResumeToGithub = () => {
+    if (!state.resume) {
+      return;
+    }
+    const githubToken = localStorage.getItem("github_token");
+    if (!githubToken) {
+      alert("Please login with Github to save your resume");
+      return;
+    }
+    alert(githubToken);
+    fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${githubToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "description": "Resume",
+        "public": true,
+        "files": {
+          [`${resume}.json`]: {
+            "content": JSON.stringify(state.resume.toJson())
+          }
+        }
+      })
+    }).then((response) => {
+      if (response.status === 201) {
+        alert("Resume saved successfully");
+      } else {
+        alert("Error saving resume");
+      }
+    });
+  }
+
   const saveResume = () => {
     if (!state.resume) {
       return;
     }
-    storage.save_resume("Default", state.resume);
+    // Download the current resume as a json file
+    const data = JSON.stringify(state.resume.toJson());
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${resume}.json`;
+    link.click();
   }
 
   const downloadResume = () => {
@@ -572,12 +634,25 @@ function App() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const data = JSON.parse((e.target as any).result);
-        const resume = convert(data);
+        const resume = "layout" in data ? Resume.fromJson(data) : convert(data);
         dispatch({ type: "load", value: resume });
       }
       reader.readAsText(file);
     }
     input.click();
+  }
+
+  const uploadResumeFromGist = () => {
+    // Prompt for Gist ID
+    const gistId = prompt("Enter Gist ID");
+    if (!gistId) {
+      return;
+    }
+    fetchGistById(gistId).then((data) => {
+      console.error(data);
+      const resume = "layout" in data ? Resume.fromJson(data) : convert(data);
+      dispatch({ type: "load", value: resume });
+    });
   }
 
 
@@ -598,6 +673,25 @@ function App() {
       document.removeEventListener('keydown', handleKeyDown);
     }
   });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "s" && e.ctrlKey || e.key === "s" && e.metaKey) {
+        if (e.repeat) {
+          return
+        }
+        e.preventDefault();
+        saveResume();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+  });
+
 
   return (
     <EditorContext.Provider value={state}>
@@ -661,7 +755,8 @@ function App() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", margin: "20px", minWidth: "640px", maxHeight: "95vh", overflow: "scroll" }}>
               <div style={{ display: "flex", flexDirection: "row", marginBottom: "5px" }}>
-                <button className='bordered' onClick={uploadResume} >Import</button>
+                <button className='bordered' onClick={uploadResume} >&#x1F4C1; Import</button>
+                <button className='bordered' onClick={uploadResumeFromGist} >&#x1F517; Import</button>
                 <button className='bordered' onClick={downloadResume} >⤓ Download</button>
                 <button className='bordered' onClick={() => setDebug(!debug)}>&#x1F41E; Debug</button>
               </div>
