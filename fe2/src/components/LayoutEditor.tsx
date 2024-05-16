@@ -341,49 +341,47 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
 
 const RowEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
     return (
-        <div
+        <fieldset
             className="layout-editor-row"
             style={{
                 display: "flex",
                 flexDirection: "row",
-                padding: "10px",
-                outline: "1px solid",
+                border: "2px solid black",
             }}
             onClick={(e) => {
                 props.setLens([...props.lens]);
                 e.stopPropagation();
             }}
         >
+             <legend>Row</legend>
             {
                 props.layout.inner.elements.map((item: any, index: number) => {
                     return <LayoutEditWindow key={index} layout={item} lens={[...props.lens, { 'index': index }]} setLens={props.setLens} />
                 })
             }
-        </div>
+        </fieldset>
     );
 }
 
 const StackEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
     return (
-        <div
+        <fieldset
             className="layout-editor-stack"
             style={{
-                display: "flex",
-                flexDirection: "column",
-                padding: "10px",
-                outline: "1px solid black",
+                border: "2px solid black",
             }}
             onClick={(e) => {
                 props.setLens([...props.lens]);
                 e.stopPropagation();
             }}
         >
+            <legend>Stack</legend>
             {
                 props.layout.inner.elements.map((item: any, index: number) => {
                     return <LayoutEditWindow key={index} layout={item} lens={[...props.lens, { 'index': index }]} setLens={props.setLens} />
                 })
             }
-        </div>
+        </fieldset>
     );
 }
 
@@ -400,10 +398,10 @@ const ItemEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
                 marginRight: props.layout.inner.margin.right,
                 marginTop: props.layout.inner.margin.top,
                 marginBottom: props.layout.inner.margin.bottom,
-                alignContent: props.layout.inner.alignment,
+                justifySelf: props.layout.inner.alignment,
                 width: props.layout.inner.width.value + "%",
-                outline: "1px solid black",
-                padding: "2px"
+                border: "1px solid black",
+                padding: "5px"
             }}
             onClick={(e) => {
                 props.setLens([...props.lens]);

@@ -80,6 +80,21 @@ button {
   color: rgb(var(--foreground-rgb));
 }
 
+fieldset {
+  border: 1px solid transparent; 
+  border-top-color: black; 
+  box-sizing: border-box; 
+  grid-area: 1 / 1; /* first row, first column */
+  padding: 10px; 
+  width: inherit; 
+  border-radius: 5px;
+}
+
+legend {
+  font-size: 0.8em;
+}
+
+
 .disabled {
   color: rgba(var(--foreground-rgb), 0.3);
   border-color: rgba(var(--foreground-rgb), 0.3);
