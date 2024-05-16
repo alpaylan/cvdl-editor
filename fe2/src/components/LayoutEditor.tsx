@@ -631,7 +631,7 @@ const LayoutEditor = () => {
                 layoutSchema !== null ?
                     <>
                         <div style={{ display: "flex", flexDirection: "column" }}>
-                            <div style={{ display: "flex", flexDirection: "column" }}>
+                            <div style={{ display: "flex", flexDirection: "column", padding: "10px" }}>
                                 <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[{ 'attribute': 'header_layout_schema' }]} layout={layoutSchema.header_layout_schema} />
                                 <div style={{ height: "5px" }}></div>
                                 <LayoutEditWindow setLens={setLayoutSchemaControlPanel} lens={[{ 'attribute': 'item_layout_schema' }]} layout={layoutSchema.item_layout_schema} />
