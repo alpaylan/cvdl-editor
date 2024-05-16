@@ -18,7 +18,6 @@ type LensStep = {
 type Lens = LensStep[];
 
 const followLens = (lens: Lens, obj: any) => {
-    console.error(lens, obj)
     return lens.reduce((acc, step) => {
         if ('attribute' in step) {
             return acc[step.attribute];
@@ -407,7 +406,6 @@ const ItemEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
                 padding: "2px"
             }}
             onClick={(e) => {
-                console.error(props.lens)
                 props.setLens([...props.lens]);
                 e.stopPropagation();
             }}

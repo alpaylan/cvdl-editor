@@ -223,7 +223,6 @@ function App() {
       return;
     }
     fetchGistById(gistId).then((data) => {
-      console.error(data);
       const resume = "layout" in data ? Resume.fromJson(data) : convert(data);
       dispatch({ type: "load", value: resume });
     });

@@ -78,8 +78,14 @@ input[type="text"]:focus {
 
 button {
   color: rgb(var(--foreground-rgb));
-  
 }
+
+.disabled {
+  color: rgba(var(--foreground-rgb), 0.3);
+  border-color: rgba(var(--foreground-rgb), 0.3);
+  cursor: not-allowed;
+}
+
 
 .panel-item {
   display: flex;
