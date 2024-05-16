@@ -346,7 +346,6 @@ const RowEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
             style={{
                 display: "flex",
                 flexDirection: "row",
-                border: "2px solid black",
             }}
             onClick={(e) => {
                 props.setLens([...props.lens]);
@@ -367,9 +366,6 @@ const StackEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
     return (
         <fieldset
             className="layout-editor-stack"
-            style={{
-                border: "2px solid black",
-            }}
             onClick={(e) => {
                 props.setLens([...props.lens]);
                 e.stopPropagation();
@@ -394,10 +390,6 @@ const ItemEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
                 fontSize: props.layout.inner.font.size,
                 fontWeight: props.layout.inner.font.weight,
                 fontStyle: props.layout.inner.font.style,
-                marginLeft: props.layout.inner.margin.left,
-                marginRight: props.layout.inner.margin.right,
-                marginTop: props.layout.inner.margin.top,
-                marginBottom: props.layout.inner.margin.bottom,
                 justifySelf: props.layout.inner.alignment,
                 width: props.layout.inner.width.value + "%",
                 border: "1px solid black",
