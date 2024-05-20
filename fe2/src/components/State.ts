@@ -128,7 +128,6 @@ export type EditorState = {
   
   export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
     const resume = state.resume;
-    console.error(action_);
     let newState = reId(resume);
     let path = state.editorPath;
     let resumeName = state.resumeName;

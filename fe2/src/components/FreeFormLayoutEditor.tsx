@@ -67,54 +67,89 @@ const emptyElement = (element: ContainerElement): ItemElement => {
             tag: 'item',
             id: `empty-${element.id}`,
             value: '>',
-            position: { x: element.position.x + element.children.length * 100, y: element.position.y },
-            size: { width: EMPTY_ELEMENT_WIDTH, height: element.size.height - PADDING * 2 }
+            position: { x: element.position.x + element.children.length * EMPTY_ELEMENT_WIDTH, y: element.position.y },
+            size: { width: EMPTY_ELEMENT_WIDTH, height: element.size.height }
         };
     } else {
         return {
             tag: 'item',
             id: `empty-${element.id}`,
             value: 'v',
-            position: { x: element.position.x, y: element.position.y + element.children.length * 50 },
-            size: { width: element.size.width - PADDING * 2, height: EMPTY_ELEMENT_HEIGHT }
+            position: { x: element.position.x, y: element.position.y + element.children.length * EMPTY_ELEMENT_HEIGHT },
+            size: { width: element.size.width, height: EMPTY_ELEMENT_HEIGHT }
         };
     }
 }
 
 const renderElement = (element: FormElement, layer: number, ghost?: boolean) => {
-    return (
-        <div
-            style={{
-                position: layer === 0 ? 'absolute' : undefined,
-                top: element.position.y,
-                left: element.position.x,
-                border: ghost ? '1px solid lightgrey' : '1px solid black',
-                padding: `${PADDING}px`,
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-                backgroundColor: element.droppable ? 'lightgreen' : 'white',
-                color: ghost ? 'lightgrey' : 'black',
-                textAlign: 'center',
-                zIndex: layer + 1,
-                width: element.size.width,
-                height: element.size.height,
-                display: 'flex',
-                flexDirection: element.tag === 'row' ? 'row' : 'column',
-            }}
-        >
-            {
-                element.tag === 'item' ? element.value : (
-                    <>
-                        {element.children.map((child) => renderElement(child, layer + 1))}
-                        {renderElement(emptyElement(element), layer + 1, true)}
-                    </>
-                )
-            }
-        </div>
-    );
+    console.log('rendering', element);
+    if (element.tag === 'item') {
+        return (
+            <div
+                style={{
+                    position: layer === 0 ? 'absolute' : undefined,
+                    top: element.position.y,
+                    left: element.position.x,
+                    border: ghost ? '1px solid lightgrey' : '1px solid black',
+                    padding: `${PADDING}px`,
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    backgroundColor: element.droppable ? 'lightgreen' : 'white',
+                    color: ghost ? 'lightgrey' : 'black',
+                    textAlign: 'center',
+                    zIndex: layer + 1,
+                    minWidth: element.size.width,
+                    width: element.size.width,
+                    minHeight: element.size.height,
+                    height: element.size.height,
+                    display: 'flex',
+                    borderRadius: "3px"
+                }}
+            >
+                {element.value}
+            </div>
+        );
+    } else {
+        return (
+            <div
+                style={{
+                    position: layer === 0 ? 'absolute' : undefined,
+                    top: layer === 0 ? element.position.y : undefined,
+                    left: element.position.x,
+                    border: ghost ? '1px solid lightgrey' : '1px solid black',
+                    padding: `${PADDING}px`,
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    backgroundColor: element.droppable ? 'lightgreen' : 'white',
+                    color: ghost ? 'lightgrey' : 'black',
+                    zIndex: layer + 1,
+                    minWidth: element.size.width,
+                    width: element.size.width,
+                    minHeight: element.size.height,
+                    height: element.size.height,
+                    display: element.tag === 'row' ? 'flex' : 'block',
+                    flexDirection: element.tag === 'row' ? 'row' : undefined,
+                    borderRadius: "3px"
+                }}
+            >
+                <span style={{
+                    position: 'absolute',
+                    top: -10,
+                    left: 3,
+                    color: 'grey',
+                    fontSize: '10px',
+                    backgroundColor: 'white',
+                    padding: '2px',
+                    zIndex: 1000
+                }}>
+                    {element.tag}</span>
+                {element.children.map((child) => renderElement(child, layer + 1))}
+            </div>
+        );
+    }
 }
 
-const findElementOnPosition : (elements: FormElement[], position: Position) => FormElement | undefined = (elements: FormElement[], position: Position) => {
+const findElementOnPosition: (elements: FormElement[], position: Position) => FormElement | undefined = (elements: FormElement[], position: Position) => {
     const findMostInnerElement: (element: FormElement) => FormElement | undefined = (element: FormElement) => {
         console.log('element', element);
         console.log('position', position);
@@ -151,7 +186,7 @@ const findElementOnPosition : (elements: FormElement[], position: Position) => F
     }
 
 
-    let result : FormElement | undefined = undefined;
+    let result: FormElement | undefined = undefined;
     elements.forEach((element) => {
         const inner = findMostInnerElement(element);
         if (inner) {
@@ -169,7 +204,7 @@ const toFreeformElements = (layoutSchema: LayoutSchema): FormElement => {
                 id: section.inner.item,
                 value: section.inner.item,
                 position: { x: 10, y: 10 },
-                size: { width: 100, height: 50 }
+                size: { width: EMPTY_ELEMENT_WIDTH, height: EMPTY_ELEMENT_HEIGHT }
             };
         } else {
             const children = section.inner.elements.map((section) => toFreeformElement(section));
@@ -177,7 +212,7 @@ const toFreeformElements = (layoutSchema: LayoutSchema): FormElement => {
                 tag: section.inner.tag === 'Row' ? 'row' : 'column',
                 id: Math.random().toString(36).substring(7),
                 position: { x: 10, y: 10 },
-                size: { width: 100, height: 50 },
+                size: { width: EMPTY_ELEMENT_WIDTH, height: EMPTY_ELEMENT_HEIGHT },
                 children: children
             };
         }
@@ -195,9 +230,9 @@ const resize = (element: FormElement) => {
             width = Math.max(width, child.size.width + PADDING * 2);
             height += child.size.height;
         });
-        height += EMPTY_ELEMENT_HEIGHT;
-        element.size.width = width > 100 ? width : 100;
-        element.size.height = height > 50 ? height : 50;
+        // height += EMPTY_ELEMENT_HEIGHT;
+        element.size.width = width > EMPTY_ELEMENT_WIDTH ? width : EMPTY_ELEMENT_WIDTH;
+        element.size.height = height > EMPTY_ELEMENT_HEIGHT ? height : EMPTY_ELEMENT_HEIGHT;
 
     } else if (element.tag === "row") {
         let width = PADDING * 2;
@@ -207,8 +242,8 @@ const resize = (element: FormElement) => {
             width += child.size.width;
             height = Math.max(height, child.size.height + PADDING * 2);
         });
-        element.size.width = width > 100 ? width : 100;
-        element.size.height = height > 50 ? height : 50;
+        element.size.width = width > EMPTY_ELEMENT_WIDTH ? width : EMPTY_ELEMENT_WIDTH;
+        element.size.height = height > EMPTY_ELEMENT_HEIGHT ? height : EMPTY_ELEMENT_HEIGHT;
     }
     return element;
 }
@@ -227,7 +262,7 @@ const FreeFormEditor = () => {
     const [drag, setDrag] = useState<Drag | null>(null);
     const canvasRef = React.useRef<HTMLDivElement>(null);
     const [longPress, setLongPress] = useState<NodeJS.Timeout | null>(null);
-    
+
     const detachElement = (element: FormElement) => {
         const detachElementSingle = (host: FormElement, target: FormElement) => {
             console.log('host', host);
@@ -264,34 +299,34 @@ const FreeFormEditor = () => {
             id: '1',
             value: 'Item 1',
             position: { x: 10, y: 10 },
-            size: { width: 100, height: 50 }
+            size: { width: EMPTY_ELEMENT_WIDTH, height: EMPTY_ELEMENT_HEIGHT }
         },
         {
             tag: 'item',
             id: '2',
             value: 'Item 2',
             position: { x: 200, y: 10 },
-            size: { width: 100, height: 50 }
+            size: { width: EMPTY_ELEMENT_WIDTH, height: EMPTY_ELEMENT_HEIGHT }
         },
         {
             tag: 'item',
             id: '3',
             value: 'Item 3',
             position: { x: 10, y: 100 },
-            size: { width: 100, height: 50 }
+            size: { width: EMPTY_ELEMENT_WIDTH, height: EMPTY_ELEMENT_HEIGHT }
         },
         {
             tag: 'column',
             id: '4',
             position: { x: 200, y: 100 },
-            size: { width: 100, height: 100 },
+            size: { width: EMPTY_ELEMENT_WIDTH, height: EMPTY_ELEMENT_HEIGHT },
             children: []
         },
         {
             tag: 'row',
             id: '5',
             position: { x: 10, y: 200 },
-            size: { width: 300, height: 100 },
+            size: { width: EMPTY_ELEMENT_WIDTH, height: EMPTY_ELEMENT_HEIGHT },
             children: []
         },
         {
@@ -299,7 +334,7 @@ const FreeFormEditor = () => {
             id: '6',
             value: 'Item 6',
             position: { x: 400, y: 10 },
-            size: { width: 100, height: 50 }
+            size: { width: EMPTY_ELEMENT_WIDTH, height: EMPTY_ELEMENT_HEIGHT }
         }
     ]);
 

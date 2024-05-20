@@ -3,7 +3,7 @@ import { EditorContext, DocumentDispatchContext } from "@/components/State";
 import { Alignment } from "cvdl-ts/dist/Alignment";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { FontStyle, FontWeight } from "cvdl-ts/dist/Font";
-import { Elem, Row, SectionLayout, Stack } from "cvdl-ts/dist/Layout";
+import { Color, ColorMap, Elem, Row, SectionLayout, Stack } from "cvdl-ts/dist/Layout";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { useContext, useEffect, useState } from "react";
@@ -287,6 +287,19 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                         <option value="Right">Right</option>
                         <option value="Center">Center</option>
                         <option value="Justify">Justify</option>
+                    </select>
+                </div>
+                <div className="panel-item">
+                    <label>Background</label>
+                    <select name="alignment" value={elem.background_color} onChange={(e) => {
+                        elem.background_color = (e.target.value as Color);
+                        props.setLayout(props.layout)
+                    }}>
+                        {
+                            Object.keys(ColorMap).map((k) => {
+                                return (<option key={k} value={k}>{k}</option>)
+                            })
+                        }
                     </select>
                 </div>
                 <div className="panel-item">

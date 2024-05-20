@@ -11,7 +11,6 @@ const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: Layout
   const [sectionName, setSectionName] = useState<string>("");
   const [dataSchema, setDataSchema] = useState<string>(props.dataSchemas[0].schema_name ?? "");
   const getAvailableLayoutSchemas = (dataSchema: string) => {
-    console.error(props.layoutSchemas.filter((schema) => schema.data_schema_name === dataSchema).length);
     return props.layoutSchemas.filter((schema) => schema.data_schema_name === dataSchema);
   }
   const availableLayoutSchemas = getAvailableLayoutSchemas(dataSchema);

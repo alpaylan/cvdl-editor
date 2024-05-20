@@ -8,6 +8,7 @@ import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { Dispatch } from "react";
 import { EditorAction, EditorState } from "@/components/State";
+import { ColorMap } from "cvdl-ts/dist/Layout";
 
 export type RenderResult = {
     blob: Blob,
@@ -61,8 +62,6 @@ export const render = async (
     if (!fontDict) {
         fontDict = new FontDict();
     }
-
-
 
     let end_time = Date.now();
 
@@ -135,6 +134,10 @@ export const render = async (
                     ${debug ? "outline: 1px solid black;" : ""}
                 `;
 
+                if (element.background_color !== "Transparent") {
+                    elem.style.backgroundColor = ColorMap[element.background_color]
+                }
+
                 if (JSON.stringify(state.editorPath) === JSON.stringify(box.path)) {
                     console.error("Highlighting element");
                     elem.style.outline = "1px solid red";
@@ -150,7 +153,7 @@ export const render = async (
                 });
 
                 elem.addEventListener("mouseout", () => {
-                    elem.style.backgroundColor = "white";
+                    elem.style.backgroundColor = element.background_color === "Transparent" ? "white" : ColorMap[element.background_color];
                     elem.style.animation = "none";
                 });
 
